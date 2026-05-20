@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Coruja SINDATA">
+  <rect x="1.5" y="1.5" width="61" height="61" rx="12" fill="#ffffff" stroke="#155e75" stroke-width="3" />
+
+  <path d="M10 14L32 8L54 14" fill="none" stroke="#111111" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M16 14V18C16 21 24 23 32 23C40 23 48 21 48 18V14" fill="none" stroke="#111111" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <path d="M14 24C14 17 20 13 27 13H37C44 13 50 17 50 24V39C50 49 42 56 32 56C22 56 14 49 14 39V24Z" fill="none" stroke="#111111" stroke-width="3.2" stroke-linejoin="round"/>
+  <circle cx="25" cy="28" r="7" fill="none" stroke="#111111" stroke-width="3"/>
+  <circle cx="39" cy="28" r="7" fill="none" stroke="#111111" stroke-width="3"/>
+  <circle cx="25" cy="28" r="1.8" fill="#111111"/>
+  <circle cx="39" cy="28" r="1.8" fill="#111111"/>
+  <path d="M32 30L34 33L32 35L30 33Z" fill="#111111"/>
+
+  <path d="M17 39L21 43L25 39L29 43" fill="none" stroke="#111111" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M34 40L37 43L40 40" fill="none" stroke="#111111" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M38 45L41 48L44 45" fill="none" stroke="#111111" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <path d="M27 56V61" fill="none" stroke="#111111" stroke-width="3.2" stroke-linecap="round"/>
+  <path d="M37 56V61" fill="none" stroke="#111111" stroke-width="3.2" stroke-linecap="round"/>
+</svg>

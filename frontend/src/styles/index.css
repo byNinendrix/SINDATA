@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color: #0f172a;
+  background: #f8fafc;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+@layer components {
+  .page-container {
+    @apply w-full p-4 sm:p-6 lg:p-8;
+  }
+
+  .form-card {
+    @apply rounded-2xl border border-slate-200 bg-white p-6 shadow-soft;
+  }
+
+  .ds-card {
+    @apply rounded-2xl border border-slate-200 bg-white p-5 shadow-sm;
+  }
+
+  .form-grid {
+    @apply grid grid-cols-1 gap-4 sm:grid-cols-2;
+  }
+
+  .form-input {
+    @apply w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-800 outline-none transition focus:border-sindata-600 focus:ring-4 focus:ring-cyan-100;
+  }
+
+  .form-label {
+    @apply mb-1.5 block text-sm font-medium text-slate-700;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center rounded-xl bg-sindata-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sindata-800 disabled:cursor-not-allowed disabled:opacity-70;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100;
+  }
+
+  .alert-error {
+    @apply rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700;
+  }
+
+  .alert-success {
+    @apply rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-700;
+  }
+
+  .sidebar-item {
+    @apply flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-slate-200 transition hover:bg-sindata-900/40 hover:text-cyan-100;
+  }
+
+  .metric-card {
+    @apply rounded-2xl border border-cyan-100 bg-white p-5 shadow-sm;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
