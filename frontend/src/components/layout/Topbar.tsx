@@ -28,8 +28,8 @@ export function Topbar({ onToggleMobileSidebar }: TopbarProps) {
           </button>
           <img src="/favicon.svg" alt="Coruja SINDATA" className="hidden h-7 w-7 rounded md:block" />
           <div>
-            <h2 className="text-sm font-semibold text-slate-900 sm:text-base">SINDATA - Inteligencia Sindical</h2>
-            <p className="hidden text-xs text-slate-500 sm:block">Conectado ao SGS - Sistema de Gestao Sindical</p>
+            <h2 className="text-sm font-semibold text-slate-900 sm:text-base">SINDATA - Inteligência Sindical</h2>
+            <p className="hidden text-xs text-slate-500 sm:block">Conectado ao SGS - Sistema de Gestão Sindical</p>
           </div>
         </div>
 

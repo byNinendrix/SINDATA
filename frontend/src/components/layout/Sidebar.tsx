@@ -1,4 +1,4 @@
-﻿import {
+import {
   BarChart3,
   ChevronLeft,
   ChevronRight,
@@ -13,14 +13,14 @@
 } from 'lucide-react';
 
 const items = [
-  { label: 'Visao Geral', icon: LayoutDashboard },
+  { label: 'Visão Geral', icon: LayoutDashboard },
   { label: 'Filiados', icon: Users },
   { label: 'Financeiro', icon: Wallet },
-  { label: 'Relatorios', icon: FileText },
+  { label: 'Relatórios', icon: FileText },
   { label: 'Dashboards', icon: BarChart3 },
   { label: 'Qualidade de Dados', icon: Database },
-  { label: 'Exportacoes', icon: FileSpreadsheet },
-  { label: 'Configuracoes', icon: Settings }
+  { label: 'Exportações', icon: FileSpreadsheet },
+  { label: 'Configurações', icon: Settings }
 ];
 
 interface SidebarProps {
@@ -79,7 +79,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isMobileOpen, onCloseMo
             {!isCollapsed ? (
               <div>
                 <h1 className="text-xl font-bold">SINDATA</h1>
-                <p className="mt-1 text-xs text-cyan-100/80">Inteligencia Sindical</p>
+                <p className="mt-1 text-xs text-cyan-100/80">Inteligência Sindical</p>
               </div>
             ) : null}
           </div>
@@ -119,7 +119,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isMobileOpen, onCloseMo
               <img src="/favicon.svg" alt="Coruja SINDATA" className="h-8 w-8 rounded-md" />
               <div>
                 <h1 className="text-xl font-bold">SINDATA</h1>
-                <p className="mt-1 text-xs text-cyan-100/80">Inteligencia Sindical</p>
+                <p className="mt-1 text-xs text-cyan-100/80">Inteligência Sindical</p>
               </div>
             </div>
           </div>

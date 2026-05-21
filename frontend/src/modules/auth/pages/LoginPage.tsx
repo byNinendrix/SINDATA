@@ -22,7 +22,7 @@ export function LoginPage() {
     }
 
     if (!login.trim() || !senha.trim()) {
-      setError('Preencha usuario e senha para continuar.');
+      setError('Preencha usuário e senha para continuar.');
       return;
     }
 
@@ -39,9 +39,9 @@ export function LoginPage() {
       navigate('/dashboard', { replace: true });
     } catch (error) {
       if (isAxiosError<{ message?: string }>(error)) {
-        setError(error.response?.data?.message ?? 'Usuario ou senha invalidos.');
+        setError(error.response?.data?.message ?? 'Usuário ou senha inválidos.');
       } else {
-        setError('Usuario ou senha invalidos.');
+        setError('Usuário ou senha inválidos.');
       }
     } finally {
       setLoading(false);
@@ -58,14 +58,14 @@ export function LoginPage() {
       <form className="space-y-5" onSubmit={handleSubmit}>
         <div>
           <label htmlFor="login" className="form-label">
-            Usuario
+            Usuário
           </label>
           <div className="relative">
             <User className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
             <input
               id="login"
               className="form-input pl-11"
-              placeholder="Digite seu usuario"
+              placeholder="Digite seu usuário"
               value={login}
               onChange={(event) => setLogin(event.target.value)}
               autoComplete="username"

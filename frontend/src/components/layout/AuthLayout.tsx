@@ -10,22 +10,22 @@ export function AuthLayout() {
               <img src="/favicon.svg" alt="Coruja SINDATA" className="h-9 w-9 rounded-md ring-1 ring-cyan-200/40" />
               <p className="text-sm uppercase tracking-[0.18em] text-cyan-200">SINDATA</p>
             </div>
-            <h1 className="mt-3 text-4xl font-bold leading-tight">Inteligencia Sindical</h1>
-            <p className="mt-4 max-w-md text-slate-200/90">Conectado ao SGS - Sistema de Gestao Sindical.</p>
+            <h1 className="mt-3 text-4xl font-bold leading-tight">Inteligência Sindical</h1>
+            <p className="mt-4 max-w-md text-slate-200/90">Conectado ao SGS - Sistema de Gestão Sindical.</p>
           </div>
 
           <div className="grid gap-4">
             <article className="rounded-2xl border border-cyan-200/20 bg-cyan-50/10 p-5">
-              <h2 className="text-lg font-semibold text-cyan-100">Dashboards Estrategicos</h2>
-              <p className="mt-1 text-sm text-slate-200/90">Visao rapida dos principais indicadores sindicais.</p>
+              <h2 className="text-lg font-semibold text-cyan-100">Dashboards Estratégicos</h2>
+              <p className="mt-1 text-sm text-slate-200/90">Visão rápida dos principais indicadores sindicais.</p>
             </article>
             <article className="rounded-2xl border border-cyan-200/20 bg-cyan-50/10 p-5">
-              <h2 className="text-lg font-semibold text-cyan-100">Filtros Avancados</h2>
-              <p className="mt-1 text-sm text-slate-200/90">Explore pessoas, filiacoes e financeiro com precisao.</p>
+              <h2 className="text-lg font-semibold text-cyan-100">Filtros Avançados</h2>
+              <p className="mt-1 text-sm text-slate-200/90">Explore pessoas, filiações e financeiro com precisão.</p>
             </article>
             <article className="rounded-2xl border border-cyan-200/20 bg-cyan-50/10 p-5">
-              <h2 className="text-lg font-semibold text-cyan-100">Inteligencia Operacional</h2>
-              <p className="mt-1 text-sm text-slate-200/90">Decisoes orientadas por dados com base no SGS.</p>
+              <h2 className="text-lg font-semibold text-cyan-100">Inteligência Operacional</h2>
+              <p className="mt-1 text-sm text-slate-200/90">Decisões orientadas por dados com base no SGS.</p>
             </article>
           </div>
         </section>
@@ -35,7 +35,7 @@ export function AuthLayout() {
             <div className="mb-8 text-center lg:hidden">
               <img src="/favicon.svg" alt="Coruja SINDATA" className="mx-auto mb-3 h-10 w-10 rounded-md" />
               <h1 className="text-2xl font-bold text-sindata-900">SINDATA</h1>
-              <p className="text-sm text-slate-600">Inteligencia Sindical</p>
+              <p className="text-sm text-slate-600">Inteligência Sindical</p>
             </div>
             <Outlet />
           </div>
