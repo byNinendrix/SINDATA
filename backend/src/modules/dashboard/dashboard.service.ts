@@ -1,4 +1,4 @@
-import { getSqlPool } from '../../database/sqlserver';
+import { getSqlPool, sql } from '../../database/sqlserver';
 import { queryReadOnly } from '../../database/readOnlyGuard';
 
 export interface DashboardResumo {
@@ -12,6 +12,33 @@ export interface DashboardResumo {
   totalFiliacoesSemVinculoPessoa: number;
 }
 
+export type DashboardDetalheCardKey =
+  | 'totalPessoas'
+  | 'pessoasFiliadasAtivas'
+  | 'pessoasDesfiliadas'
+  | 'pessoasSemRegistroFiliacao'
+  | 'totalFiliacoes'
+  | 'filiacoesAtivas'
+  | 'filiacoesDesfiliadas'
+  | 'filiacoesSemVinculoPessoa';
+
+export interface DashboardDetalheItem {
+  cpf: string;
+  nome: string;
+}
+
+export interface DashboardDetalhesPagination {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface DashboardDetalhesResponse {
+  items: DashboardDetalheItem[];
+  pagination: DashboardDetalhesPagination;
+}
+
 interface TotalPessoasRow {
   totalPessoas: number | string;
   filiadosAtivos: number | string;
@@ -21,6 +48,15 @@ interface TotalPessoasRow {
   totalFiliacoesAtivas: number | string;
   totalFiliacoesDesfiliadas: number | string;
   totalFiliacoesSemVinculoPessoa: number | string;
+}
+
+interface DashboardDetalheCountRow {
+  total: number | string;
+}
+
+interface DashboardDetalheRow {
+  CPF: string | null;
+  NOME: string | null;
 }
 
 export class DashboardService {
@@ -36,6 +72,201 @@ export class DashboardService {
     }
 
     return Number.parseInt(value, 10) || 0;
+  }
+
+  private normalizePage(value: number): number {
+    if (!Number.isFinite(value) || value < 1) {
+      return 1;
+    }
+
+    return Math.floor(value);
+  }
+
+  private normalizePageSize(value: number): number {
+    if (!Number.isFinite(value) || value < 1) {
+      return 50;
+    }
+
+    return Math.min(Math.floor(value), 100);
+  }
+
+  private getBaseQueryByCard(cardKey: DashboardDetalheCardKey): string {
+    switch (cardKey) {
+      case 'totalPessoas':
+        return `
+          SELECT
+            p.CPF AS CPF,
+            p.NOME AS NOME
+          FROM dbo.PESSOAS AS p
+        `;
+      case 'pessoasFiliadasAtivas':
+        return `
+          SELECT
+            p.CPF AS CPF,
+            p.NOME AS NOME
+          FROM dbo.PESSOAS AS p
+          WHERE EXISTS (
+            SELECT 1
+            FROM dbo.FILIADO AS f
+            WHERE f.CPF = p.CPF
+              AND f.ASSOCIADO = -1
+          )
+        `;
+      case 'pessoasDesfiliadas':
+        return `
+          SELECT
+            p.CPF AS CPF,
+            p.NOME AS NOME
+          FROM dbo.PESSOAS AS p
+          WHERE EXISTS (
+            SELECT 1
+            FROM dbo.FILIADO AS f
+            WHERE f.CPF = p.CPF
+              AND f.ASSOCIADO = 0
+          )
+            AND NOT EXISTS (
+              SELECT 1
+              FROM dbo.FILIADO AS f
+              WHERE f.CPF = p.CPF
+                AND f.ASSOCIADO = -1
+            )
+        `;
+      case 'pessoasSemRegistroFiliacao':
+        return `
+          SELECT
+            p.CPF AS CPF,
+            p.NOME AS NOME
+          FROM dbo.PESSOAS AS p
+          WHERE NOT EXISTS (
+            SELECT 1
+            FROM dbo.FILIADO AS f
+            WHERE f.CPF = p.CPF
+          )
+        `;
+      case 'totalFiliacoes':
+        return `
+          SELECT
+            f.CPF AS CPF,
+            p.NOME AS NOME
+          FROM dbo.FILIADO AS f
+          LEFT JOIN dbo.PESSOAS AS p
+            ON p.CPF = f.CPF
+        `;
+      case 'filiacoesAtivas':
+        return `
+          SELECT
+            f.CPF AS CPF,
+            p.NOME AS NOME
+          FROM dbo.FILIADO AS f
+          LEFT JOIN dbo.PESSOAS AS p
+            ON p.CPF = f.CPF
+          WHERE f.ASSOCIADO = -1
+        `;
+      case 'filiacoesDesfiliadas':
+        return `
+          SELECT
+            f.CPF AS CPF,
+            p.NOME AS NOME
+          FROM dbo.FILIADO AS f
+          LEFT JOIN dbo.PESSOAS AS p
+            ON p.CPF = f.CPF
+          WHERE f.ASSOCIADO = 0
+        `;
+      case 'filiacoesSemVinculoPessoa':
+        return `
+          SELECT
+            f.CPF AS CPF,
+            CAST('Sem vínculo em PESSOAS' AS VARCHAR(255)) AS NOME
+          FROM dbo.FILIADO AS f
+          LEFT JOIN dbo.PESSOAS AS p
+            ON p.CPF = f.CPF
+          WHERE p.CPF IS NULL
+        `;
+      default:
+        return `
+          SELECT
+            p.CPF AS CPF,
+            p.NOME AS NOME
+          FROM dbo.PESSOAS AS p
+          WHERE 1 = 0
+        `;
+    }
+  }
+
+  async getDetalhes(
+    cardKey: DashboardDetalheCardKey,
+    rawSearch: string,
+    rawPage: number,
+    rawPageSize: number
+  ): Promise<DashboardDetalhesResponse> {
+    const search = rawSearch.trim();
+    const page = this.normalizePage(rawPage);
+    const pageSize = this.normalizePageSize(rawPageSize);
+    const offset = (page - 1) * pageSize;
+
+    const baseQuery = this.getBaseQueryByCard(cardKey);
+    const filteredCte = `
+      WITH Base AS (
+        ${baseQuery}
+      ),
+      Filtered AS (
+        SELECT
+          LTRIM(RTRIM(CAST(Base.CPF AS VARCHAR(32)))) AS CPF,
+          LTRIM(RTRIM(CAST(ISNULL(Base.NOME, '') AS VARCHAR(255)))) AS NOME
+        FROM Base
+        WHERE LTRIM(RTRIM(CAST(ISNULL(Base.CPF, '') AS VARCHAR(32)))) <> ''
+      )
+    `;
+
+    const pool = await getSqlPool();
+    const countRequest = pool
+      .request()
+      .input('search', sql.VarChar(120), search)
+      .input('searchLike', sql.VarChar(130), `%${search}%`);
+
+    const countQuery = `
+      ${filteredCte}
+      SELECT COUNT_BIG(1) AS total
+      FROM Filtered
+      WHERE (@search = '' OR Filtered.CPF LIKE @searchLike OR Filtered.NOME LIKE @searchLike)
+    `;
+
+    const countResult = await queryReadOnly<DashboardDetalheCountRow>(countRequest, countQuery);
+    const total = this.parseSqlNumber(countResult.recordset[0]?.total ?? 0);
+
+    const dataRequest = pool
+      .request()
+      .input('search', sql.VarChar(120), search)
+      .input('searchLike', sql.VarChar(130), `%${search}%`)
+      .input('offset', sql.Int, offset)
+      .input('pageSize', sql.Int, pageSize);
+
+    const dataQuery = `
+      ${filteredCte}
+      SELECT
+        Filtered.CPF,
+        Filtered.NOME
+      FROM Filtered
+      WHERE (@search = '' OR Filtered.CPF LIKE @searchLike OR Filtered.NOME LIKE @searchLike)
+      ORDER BY Filtered.NOME ASC, Filtered.CPF ASC
+      OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY
+    `;
+
+    const dataResult = await queryReadOnly<DashboardDetalheRow>(dataRequest, dataQuery);
+    const items: DashboardDetalheItem[] = dataResult.recordset.map((row) => ({
+      cpf: String(row.CPF ?? ''),
+      nome: String(row.NOME ?? '')
+    }));
+
+    return {
+      items,
+      pagination: {
+        page,
+        pageSize,
+        total,
+        totalPages: total > 0 ? Math.ceil(total / pageSize) : 0
+      }
+    };
   }
 
   async getResumo(): Promise<DashboardResumo> {
