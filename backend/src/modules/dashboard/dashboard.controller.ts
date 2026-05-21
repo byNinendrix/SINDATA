@@ -27,6 +27,56 @@ export async function dashboardResumoController(_request: FastifyRequest, reply:
   return successResponse(reply, resumo, 'Resumo carregado com sucesso.');
 }
 
+export async function dashboardSexoDistribuicaoController(_request: FastifyRequest, reply: FastifyReply) {
+  const distribuicao = await dashboardService.getSexoDistribuicao();
+
+  return successResponse(reply, distribuicao, 'Distribuição por sexo carregada com sucesso.');
+}
+
+export async function dashboardFiliacaoSituacaoDistribuicaoController(
+  _request: FastifyRequest,
+  reply: FastifyReply
+) {
+  const distribuicao = await dashboardService.getFiliacaoSituacaoDistribuicao();
+
+  return successResponse(reply, distribuicao, 'Distribuição por situação funcional carregada com sucesso.');
+}
+
+export async function dashboardFiliacaoSituacaoSexoDistribuicaoController(
+  _request: FastifyRequest,
+  reply: FastifyReply
+) {
+  const distribuicao = await dashboardService.getFiliacaoSituacaoSexoDistribuicao();
+
+  return successResponse(reply, distribuicao, 'Distribuição por sexo na situação funcional carregada com sucesso.');
+}
+
+export async function dashboardFiliacaoSituacaoDesfiliadosDistribuicaoController(
+  _request: FastifyRequest,
+  reply: FastifyReply
+) {
+  const distribuicao = await dashboardService.getFiliacaoSituacaoDesfiliadosDistribuicao();
+
+  return successResponse(
+    reply,
+    distribuicao,
+    'Distribuição por situação de filiações desfiliadas carregada com sucesso.'
+  );
+}
+
+export async function dashboardFiliacaoSituacaoDesfiliadosSexoDistribuicaoController(
+  _request: FastifyRequest,
+  reply: FastifyReply
+) {
+  const distribuicao = await dashboardService.getFiliacaoSituacaoDesfiliadosSexoDistribuicao();
+
+  return successResponse(
+    reply,
+    distribuicao,
+    'Distribuição por sexo na situação de filiações desfiliadas carregada com sucesso.'
+  );
+}
+
 export async function dashboardDetalhesController(request: FastifyRequest, reply: FastifyReply) {
   const parsedQuery = detalhesQuerySchema.safeParse(request.query);
 

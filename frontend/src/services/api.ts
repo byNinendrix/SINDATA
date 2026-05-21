@@ -19,4 +19,24 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error?.response?.status;
+    const requestUrl = String(error?.config?.url ?? '');
+    const isAuthLoginRequest = requestUrl.includes('/auth/login');
+
+    if (status === 401 && !isAuthLoginRequest) {
+      localStorage.removeItem('sindata_token');
+      localStorage.removeItem('sindata_user');
+
+      if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
 export default api;

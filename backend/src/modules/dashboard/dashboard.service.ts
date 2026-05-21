@@ -39,6 +39,71 @@ export interface DashboardDetalhesResponse {
   pagination: DashboardDetalhesPagination;
 }
 
+export interface DashboardSexoDistribuicaoItem {
+  genero: string;
+  descricao: string;
+  totalPessoasQtd: number;
+  totalPessoasPercentual: number;
+  pessoasFiliadasAtivasQtd: number;
+  pessoasFiliadasAtivasPercentual: number;
+  pessoasDesfiliadasQtd: number;
+  pessoasDesfiliadasPercentual: number;
+  pessoasSemRegistroFiliacaoQtd: number;
+  pessoasSemRegistroFiliacaoPercentual: number;
+}
+
+export interface DashboardSexoDistribuicaoResponse {
+  items: DashboardSexoDistribuicaoItem[];
+}
+
+export interface DashboardFiliacaoSituacaoDistribuicaoItem {
+  codigo: string;
+  descricao: string;
+  totalFiliacoesQtd: number;
+  totalFiliacoesPercentual: number;
+}
+
+export interface DashboardFiliacaoSituacaoDistribuicaoResponse {
+  items: DashboardFiliacaoSituacaoDistribuicaoItem[];
+}
+
+export interface DashboardFiliacaoSituacaoSexoDistribuicaoItem {
+  situacaoCodigo: string;
+  situacaoDescricao: string;
+  genero: string;
+  generoDescricao: string;
+  totalQtd: number;
+  totalPercentual: number;
+}
+
+export interface DashboardFiliacaoSituacaoSexoDistribuicaoResponse {
+  items: DashboardFiliacaoSituacaoSexoDistribuicaoItem[];
+}
+
+export interface DashboardFiliacaoSituacaoDesfiliadosDistribuicaoItem {
+  codigo: string;
+  descricao: string;
+  totalDesfiliadosQtd: number;
+  totalDesfiliadosPercentual: number;
+}
+
+export interface DashboardFiliacaoSituacaoDesfiliadosDistribuicaoResponse {
+  items: DashboardFiliacaoSituacaoDesfiliadosDistribuicaoItem[];
+}
+
+export interface DashboardFiliacaoSituacaoDesfiliadosSexoDistribuicaoItem {
+  situacaoCodigo: string;
+  situacaoDescricao: string;
+  genero: string;
+  generoDescricao: string;
+  totalQtd: number;
+  totalPercentual: number;
+}
+
+export interface DashboardFiliacaoSituacaoDesfiliadosSexoDistribuicaoResponse {
+  items: DashboardFiliacaoSituacaoDesfiliadosSexoDistribuicaoItem[];
+}
+
 interface TotalPessoasRow {
   totalPessoas: number | string;
   filiadosAtivos: number | string;
@@ -57,6 +122,45 @@ interface DashboardDetalheCountRow {
 interface DashboardDetalheRow {
   CPF: string | null;
   NOME: string | null;
+}
+
+interface DashboardSexoDistribuicaoRow {
+  genero: string | null;
+  descricao: string | null;
+  totalPessoasQtd: number | string;
+  pessoasFiliadasAtivasQtd: number | string;
+  pessoasDesfiliadasQtd: number | string;
+  pessoasSemRegistroFiliacaoQtd: number | string;
+}
+
+interface DashboardFiliacaoSituacaoDistribuicaoRow {
+  codigo: string | null;
+  descricao: string | null;
+  totalFiliacoesQtd: number | string;
+}
+
+interface DashboardFiliacaoSituacaoSexoDistribuicaoRow {
+  situacaoCodigo: string | null;
+  situacaoDescricao: string | null;
+  genero: string | null;
+  generoDescricao: string | null;
+  totalQtd: number | string;
+  totalSituacaoQtd: number | string;
+}
+
+interface DashboardFiliacaoSituacaoDesfiliadosDistribuicaoRow {
+  codigo: string | null;
+  descricao: string | null;
+  totalDesfiliadosQtd: number | string;
+}
+
+interface DashboardFiliacaoSituacaoDesfiliadosSexoDistribuicaoRow {
+  situacaoCodigo: string | null;
+  situacaoDescricao: string | null;
+  genero: string | null;
+  generoDescricao: string | null;
+  totalQtd: number | string;
+  totalSituacaoQtd: number | string;
 }
 
 export class DashboardService {
@@ -88,6 +192,15 @@ export class DashboardService {
     }
 
     return Math.min(Math.floor(value), 100);
+  }
+
+  private calculatePercentage(quantity: number, total: number): number {
+    if (total <= 0) {
+      return 0;
+    }
+
+    const percentage = (quantity / total) * 100;
+    return Number(percentage.toFixed(2));
   }
 
   private getBaseQueryByCard(cardKey: DashboardDetalheCardKey): string {
@@ -375,6 +488,329 @@ export class DashboardService {
 
     return {
       ...resumo
+    };
+  }
+
+  async getSexoDistribuicao(): Promise<DashboardSexoDistribuicaoResponse> {
+    const resumo = await this.getResumo();
+    const pool = await getSqlPool();
+    const result = await queryReadOnly<DashboardSexoDistribuicaoRow>(
+      pool.request(),
+      `
+        WITH PessoasClassificadas AS (
+          SELECT
+            p.CPF,
+            p.SEXO,
+            CASE
+              WHEN EXISTS (
+                SELECT 1
+                FROM dbo.FILIADO AS f
+                WHERE f.CPF = p.CPF
+                  AND f.ASSOCIADO = -1
+              ) THEN 1
+              ELSE 0
+            END AS IsFiliadoAtivo,
+            CASE
+              WHEN EXISTS (
+                SELECT 1
+                FROM dbo.FILIADO AS f
+                WHERE f.CPF = p.CPF
+                  AND f.ASSOCIADO = 0
+              )
+              AND NOT EXISTS (
+                SELECT 1
+                FROM dbo.FILIADO AS f
+                WHERE f.CPF = p.CPF
+                  AND f.ASSOCIADO = -1
+              ) THEN 1
+              ELSE 0
+            END AS IsDesfiliado,
+            CASE
+              WHEN NOT EXISTS (
+                SELECT 1
+                FROM dbo.FILIADO AS f
+                WHERE f.CPF = p.CPF
+              ) THEN 1
+              ELSE 0
+            END AS IsSemRegistroFiliacao
+          FROM dbo.PESSOAS AS p
+        )
+        SELECT
+          g.GENERO AS genero,
+          g.DESCRICAO AS descricao,
+          COUNT_BIG(pc.CPF) AS totalPessoasQtd,
+          SUM(CASE WHEN pc.IsFiliadoAtivo = 1 THEN 1 ELSE 0 END) AS pessoasFiliadasAtivasQtd,
+          SUM(CASE WHEN pc.IsDesfiliado = 1 THEN 1 ELSE 0 END) AS pessoasDesfiliadasQtd,
+          SUM(CASE WHEN pc.IsSemRegistroFiliacao = 1 THEN 1 ELSE 0 END) AS pessoasSemRegistroFiliacaoQtd
+        FROM dbo.GENERO AS g
+        LEFT JOIN PessoasClassificadas AS pc
+          ON pc.SEXO = g.GENERO
+        GROUP BY
+          g.GENERO,
+          g.DESCRICAO
+        ORDER BY
+          g.DESCRICAO ASC
+      `
+    );
+
+    const items: DashboardSexoDistribuicaoItem[] = result.recordset.map((row) => {
+      const totalPessoasQtd = this.parseSqlNumber(row.totalPessoasQtd ?? 0);
+      const pessoasFiliadasAtivasQtd = this.parseSqlNumber(row.pessoasFiliadasAtivasQtd ?? 0);
+      const pessoasDesfiliadasQtd = this.parseSqlNumber(row.pessoasDesfiliadasQtd ?? 0);
+      const pessoasSemRegistroFiliacaoQtd = this.parseSqlNumber(row.pessoasSemRegistroFiliacaoQtd ?? 0);
+
+      return {
+        genero: String(row.genero ?? ''),
+        descricao: String(row.descricao ?? ''),
+        totalPessoasQtd,
+        totalPessoasPercentual: this.calculatePercentage(totalPessoasQtd, resumo.totalPessoas),
+        pessoasFiliadasAtivasQtd,
+        pessoasFiliadasAtivasPercentual: this.calculatePercentage(pessoasFiliadasAtivasQtd, resumo.filiadosAtivos),
+        pessoasDesfiliadasQtd,
+        pessoasDesfiliadasPercentual: this.calculatePercentage(pessoasDesfiliadasQtd, resumo.desfiliados),
+        pessoasSemRegistroFiliacaoQtd,
+        pessoasSemRegistroFiliacaoPercentual: this.calculatePercentage(
+          pessoasSemRegistroFiliacaoQtd,
+          resumo.contribuintes
+        )
+      };
+    });
+
+    return {
+      items
+    };
+  }
+
+  async getFiliacaoSituacaoDistribuicao(): Promise<DashboardFiliacaoSituacaoDistribuicaoResponse> {
+    const resumo = await this.getResumo();
+    const pool = await getSqlPool();
+    const result = await queryReadOnly<DashboardFiliacaoSituacaoDistribuicaoRow>(
+      pool.request(),
+      `
+        SELECT
+          sf.CODIGO AS codigo,
+          sf.DESCRICAO AS descricao,
+          COUNT_BIG(f.CPF) AS totalFiliacoesQtd
+        FROM dbo.SITUACAO_FILIADO AS sf
+        LEFT JOIN dbo.FILIADO AS f
+          ON f.SITUACAO = sf.CODIGO
+        WHERE sf.ATIVO = 1
+        GROUP BY
+          sf.CODIGO,
+          sf.DESCRICAO
+        ORDER BY
+          sf.DESCRICAO ASC
+      `
+    );
+
+    const items: DashboardFiliacaoSituacaoDistribuicaoItem[] = result.recordset.map((row) => {
+      const totalFiliacoesQtd = this.parseSqlNumber(row.totalFiliacoesQtd ?? 0);
+
+      return {
+        codigo: String(row.codigo ?? ''),
+        descricao: String(row.descricao ?? ''),
+        totalFiliacoesQtd,
+        totalFiliacoesPercentual: this.calculatePercentage(totalFiliacoesQtd, resumo.totalFiliacoes)
+      };
+    });
+
+    return {
+      items
+    };
+  }
+
+  async getFiliacaoSituacaoSexoDistribuicao(): Promise<DashboardFiliacaoSituacaoSexoDistribuicaoResponse> {
+    const pool = await getSqlPool();
+    const result = await queryReadOnly<DashboardFiliacaoSituacaoSexoDistribuicaoRow>(
+      pool.request(),
+      `
+        WITH SituacoesAtivas AS (
+          SELECT
+            sf.CODIGO AS codigo,
+            sf.DESCRICAO AS descricao
+          FROM dbo.SITUACAO_FILIADO AS sf
+          WHERE sf.ATIVO = 1
+        ),
+        Generos AS (
+          SELECT
+            g.GENERO AS genero,
+            g.DESCRICAO AS descricao
+          FROM dbo.GENERO AS g
+        ),
+        FiliacoesPorSituacaoSexo AS (
+          SELECT
+            f.SITUACAO AS situacaoCodigo,
+            p.SEXO AS genero,
+            COUNT_BIG(1) AS totalQtd
+          FROM dbo.FILIADO AS f
+          LEFT JOIN dbo.PESSOAS AS p
+            ON p.CPF = f.CPF
+          GROUP BY
+            f.SITUACAO,
+            p.SEXO
+        ),
+        TotaisPorSituacao AS (
+          SELECT
+            f.SITUACAO AS situacaoCodigo,
+            COUNT_BIG(1) AS totalSituacaoQtd
+          FROM dbo.FILIADO AS f
+          GROUP BY
+            f.SITUACAO
+        )
+        SELECT
+          sa.codigo AS situacaoCodigo,
+          sa.descricao AS situacaoDescricao,
+          g.genero AS genero,
+          g.descricao AS generoDescricao,
+          ISNULL(fss.totalQtd, 0) AS totalQtd,
+          ISNULL(ts.totalSituacaoQtd, 0) AS totalSituacaoQtd
+        FROM SituacoesAtivas AS sa
+        CROSS JOIN Generos AS g
+        LEFT JOIN FiliacoesPorSituacaoSexo AS fss
+          ON fss.situacaoCodigo = sa.codigo
+          AND fss.genero = g.genero
+        LEFT JOIN TotaisPorSituacao AS ts
+          ON ts.situacaoCodigo = sa.codigo
+        ORDER BY
+          sa.descricao ASC,
+          g.descricao ASC
+      `
+    );
+
+    const items: DashboardFiliacaoSituacaoSexoDistribuicaoItem[] = result.recordset.map((row) => {
+      const totalQtd = this.parseSqlNumber(row.totalQtd ?? 0);
+      const totalSituacaoQtd = this.parseSqlNumber(row.totalSituacaoQtd ?? 0);
+
+      return {
+        situacaoCodigo: String(row.situacaoCodigo ?? ''),
+        situacaoDescricao: String(row.situacaoDescricao ?? ''),
+        genero: String(row.genero ?? ''),
+        generoDescricao: String(row.generoDescricao ?? ''),
+        totalQtd,
+        totalPercentual: this.calculatePercentage(totalQtd, totalSituacaoQtd)
+      };
+    });
+
+    return {
+      items
+    };
+  }
+
+  async getFiliacaoSituacaoDesfiliadosDistribuicao(): Promise<DashboardFiliacaoSituacaoDesfiliadosDistribuicaoResponse> {
+    const resumo = await this.getResumo();
+    const pool = await getSqlPool();
+    const result = await queryReadOnly<DashboardFiliacaoSituacaoDesfiliadosDistribuicaoRow>(
+      pool.request(),
+      `
+        SELECT
+          sf.CODIGO AS codigo,
+          sf.DESCRICAO AS descricao,
+          COUNT_BIG(f.CPF) AS totalDesfiliadosQtd
+        FROM dbo.SITUACAO_FILIADO AS sf
+        LEFT JOIN dbo.FILIADO AS f
+          ON f.SITUACAO = sf.CODIGO
+          AND f.ASSOCIADO = 0
+        WHERE sf.ATIVO = 1
+        GROUP BY
+          sf.CODIGO,
+          sf.DESCRICAO
+        ORDER BY
+          sf.DESCRICAO ASC
+      `
+    );
+
+    const items: DashboardFiliacaoSituacaoDesfiliadosDistribuicaoItem[] = result.recordset.map((row) => {
+      const totalDesfiliadosQtd = this.parseSqlNumber(row.totalDesfiliadosQtd ?? 0);
+
+      return {
+        codigo: String(row.codigo ?? ''),
+        descricao: String(row.descricao ?? ''),
+        totalDesfiliadosQtd,
+        totalDesfiliadosPercentual: this.calculatePercentage(totalDesfiliadosQtd, resumo.totalFiliacoesDesfiliadas)
+      };
+    });
+
+    return {
+      items
+    };
+  }
+
+  async getFiliacaoSituacaoDesfiliadosSexoDistribuicao(): Promise<DashboardFiliacaoSituacaoDesfiliadosSexoDistribuicaoResponse> {
+    const pool = await getSqlPool();
+    const result = await queryReadOnly<DashboardFiliacaoSituacaoDesfiliadosSexoDistribuicaoRow>(
+      pool.request(),
+      `
+        WITH SituacoesAtivas AS (
+          SELECT
+            sf.CODIGO AS codigo,
+            sf.DESCRICAO AS descricao
+          FROM dbo.SITUACAO_FILIADO AS sf
+          WHERE sf.ATIVO = 1
+        ),
+        Generos AS (
+          SELECT
+            g.GENERO AS genero,
+            g.DESCRICAO AS descricao
+          FROM dbo.GENERO AS g
+        ),
+        DesfiliadosPorSituacaoSexo AS (
+          SELECT
+            f.SITUACAO AS situacaoCodigo,
+            p.SEXO AS genero,
+            COUNT_BIG(1) AS totalQtd
+          FROM dbo.FILIADO AS f
+          LEFT JOIN dbo.PESSOAS AS p
+            ON p.CPF = f.CPF
+          WHERE f.ASSOCIADO = 0
+          GROUP BY
+            f.SITUACAO,
+            p.SEXO
+        ),
+        TotaisDesfiliadosPorSituacao AS (
+          SELECT
+            f.SITUACAO AS situacaoCodigo,
+            COUNT_BIG(1) AS totalSituacaoQtd
+          FROM dbo.FILIADO AS f
+          WHERE f.ASSOCIADO = 0
+          GROUP BY
+            f.SITUACAO
+        )
+        SELECT
+          sa.codigo AS situacaoCodigo,
+          sa.descricao AS situacaoDescricao,
+          g.genero AS genero,
+          g.descricao AS generoDescricao,
+          ISNULL(dss.totalQtd, 0) AS totalQtd,
+          ISNULL(tds.totalSituacaoQtd, 0) AS totalSituacaoQtd
+        FROM SituacoesAtivas AS sa
+        CROSS JOIN Generos AS g
+        LEFT JOIN DesfiliadosPorSituacaoSexo AS dss
+          ON dss.situacaoCodigo = sa.codigo
+          AND dss.genero = g.genero
+        LEFT JOIN TotaisDesfiliadosPorSituacao AS tds
+          ON tds.situacaoCodigo = sa.codigo
+        ORDER BY
+          sa.descricao ASC,
+          g.descricao ASC
+      `
+    );
+
+    const items: DashboardFiliacaoSituacaoDesfiliadosSexoDistribuicaoItem[] = result.recordset.map((row) => {
+      const totalQtd = this.parseSqlNumber(row.totalQtd ?? 0);
+      const totalSituacaoQtd = this.parseSqlNumber(row.totalSituacaoQtd ?? 0);
+
+      return {
+        situacaoCodigo: String(row.situacaoCodigo ?? ''),
+        situacaoDescricao: String(row.situacaoDescricao ?? ''),
+        genero: String(row.genero ?? ''),
+        generoDescricao: String(row.generoDescricao ?? ''),
+        totalQtd,
+        totalPercentual: this.calculatePercentage(totalQtd, totalSituacaoQtd)
+      };
+    });
+
+    return {
+      items
     };
   }
 }
