@@ -24,7 +24,7 @@ function Write-NoBomFile {
 function Save-Pid {
   param(
     [Parameter(Mandatory = $true)] [string] $Name,
-    [Parameter(Mandatory = $true)] [int] $Pid
+    [Parameter(Mandatory = $true)] [int] $ProcessId
   )
   Write-NoBomFile -Path (Join-Path $logsDir "$Name.pid") -Value "$Pid"
 }
@@ -50,7 +50,7 @@ function Start-ManagedProcess {
     -WindowStyle Hidden `
     -PassThru
 
-  Save-Pid -Name $Name -Pid $proc.Id
+  Save-Pid -Name $Name -ProcessId $proc.Id
   return $proc
 }
 
@@ -68,7 +68,7 @@ if ($Rebuild) {
 Write-Host 'Subindo backend (producao)...'
 $backendProc = Start-ManagedProcess `
   -Name 'backend' `
-  -FilePath 'node.exe' `
+  -FilePath 'D:\\Apps\\_runtime\\node-v20.19.0-win-x64\\node.exe' `
   -Arguments @('dist/server.js') `
   -WorkingDirectory $backendDir
 

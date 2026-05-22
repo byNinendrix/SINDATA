@@ -72,7 +72,7 @@ function Restart-Backend {
       Stop-Process -Id ([int]$pidValue) -Force -ErrorAction SilentlyContinue
     }
   }
-  Start-ManagedProcess -Name 'backend' -FilePath 'node.exe' -Arguments @('dist/server.js') -WorkingDirectory $backendDir
+  Start-ManagedProcess -Name 'backend' -FilePath 'D:\\Apps\\_runtime\\node-v20.19.0-win-x64\\node.exe' -Arguments @('dist/server.js') -WorkingDirectory $backendDir
 }
 
 function Restart-Frontend {
@@ -89,7 +89,7 @@ function Restart-Frontend {
 
 Log-Line 'Watchdog iniciado.'
 while ($true) {
-  if (-not (Test-Http -Url 'http://127.0.0.1:3333/api/health')) {
+  if (-not (Test-Http -Url 'http://127.0.0.1:3334/api/health')) {
     Restart-Backend
     Start-Sleep -Seconds 2
   }
