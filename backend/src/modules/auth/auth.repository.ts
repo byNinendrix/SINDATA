@@ -14,7 +14,7 @@ export class AuthRepository {
           USR_LOGIN,
           USR_SENHA
         FROM FR_USUARIO
-        WHERE USR_LOGIN = @login
+        WHERE LOWER(USR_LOGIN) = LOWER(@login)
       `
     );
 
