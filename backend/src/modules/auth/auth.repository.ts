@@ -11,6 +11,7 @@ export class AuthRepository {
       request,
       `
         SELECT
+          USR_CODIGO,
           USR_LOGIN,
           USR_SENHA
         FROM FR_USUARIO

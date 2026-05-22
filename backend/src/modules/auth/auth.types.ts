@@ -8,6 +8,7 @@ export interface AuthUser {
 }
 
 export interface UsuarioRecord {
+  USR_CODIGO: number;
   USR_LOGIN: string;
   USR_SENHA: string;
 }

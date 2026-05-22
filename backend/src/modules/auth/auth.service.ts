@@ -21,7 +21,11 @@ declare module '@fastify/jwt' {
 export class AuthService {
   constructor(private readonly authRepository: AuthRepository) {}
 
-  private validatePassword(inputPassword: string, storedPassword: string): boolean {
+  private validatePassword(
+    inputPassword: string,
+    storedPassword: string,
+    userCode?: number
+  ): boolean {
     const normalizedInput = inputPassword.trim();
     const normalizedStored = String(storedPassword ?? '').trim();
 
@@ -41,6 +45,15 @@ export class AuthService {
     const md5 = createHash('md5').update(normalizedInput).digest('hex');
     if (md5.toLowerCase() === normalizedStored.toLowerCase()) {
       return true;
+    }
+
+    if (typeof userCode === 'number' && Number.isFinite(userCode)) {
+      const md5CodePrefix = createHash('md5')
+        .update(`${userCode}${normalizedInput}`)
+        .digest('hex');
+      if (md5CodePrefix.toLowerCase() === normalizedStored.toLowerCase()) {
+        return true;
+      }
     }
 
     // Compatibilidade com legado observado no SGS (ex.: senha "1" armazenada como MD5 de "11").
@@ -74,7 +87,11 @@ export class AuthService {
       return null;
     }
 
-    const isPasswordValid = this.validatePassword(senha, userRecord.USR_SENHA);
+    const isPasswordValid = this.validatePassword(
+      senha,
+      userRecord.USR_SENHA,
+      userRecord.USR_CODIGO
+    );
 
     if (!isPasswordValid) {
       return null;
