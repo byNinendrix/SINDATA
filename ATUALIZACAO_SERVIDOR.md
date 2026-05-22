@@ -178,6 +178,46 @@ Causa: token expirado ou origem diferente.
 
 Correção: `Ctrl + F5` + login novamente.
 
+### D) `401` no `/api/auth/login` mesmo com usuário/senha corretos
+
+Causa comum: processo antigo no `:3334` ainda ativo, mesmo após pull/build.
+
+Passo 1 - confirmar processo real que escuta `3334` (não usar variável `$pid`, ela é reservada no PowerShell):
+
+```powershell
+$backendProcId = (Get-NetTCPConnection -LocalPort 3334 -State Listen | Select-Object -First 1 -ExpandProperty OwningProcess)
+Get-CimInstance Win32_Process -Filter "ProcessId = $backendProcId" | Select-Object ProcessId, ExecutablePath, CommandLine
+```
+
+Passo 2 - reciclar backend de forma cirúrgica:
+
+```powershell
+Stop-Process -Id $backendProcId -Force
+Start-Process -FilePath "D:\Apps\_runtime\node-v20.19.0-win-x64\node.exe" -ArgumentList "dist/server.js" -WorkingDirectory "D:\Apps\SINDATA\backend" -WindowStyle Hidden
+```
+
+Passo 3 - validar login direto na API:
+
+```powershell
+$body = '{"login":"master","senha":"701202"}'
+Invoke-WebRequest -Uri "http://127.0.0.1:3334/api/auth/login" -Method POST -ContentType "application/json; charset=utf-8" -Body $body -UseBasicParsing
+```
+
+Esperado: `200` com `token`.
+
+### E) Regra de senha legada do SGS (importante)
+
+Nesta base, o usuário `master` usa hash legado `MD5(USR_CODIGO + senha)` no `FR_USUARIO.USR_SENHA`.
+Logo, o backend precisa manter compatibilidade com:
+
+- texto puro
+- `MD5(senha)`
+- `MD5(senha+senha)`
+- `MD5(codigo+senha)` (legado observado em produção)
+- `SHA1(senha)`
+
+Se login funcionar no teste direto do `AuthService` mas falhar no endpoint HTTP, o problema é processo antigo/estado, não regra de senha.
+
 ## 11) Versionar mudanças operacionais no servidor
 
 Quando houver ajuste de script/env em produção:
