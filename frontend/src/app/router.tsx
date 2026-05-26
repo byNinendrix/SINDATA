@@ -4,6 +4,7 @@ import { AuthLayout } from '../components/layout/AuthLayout';
 import { useAuth } from '../modules/auth/hooks/useAuth';
 import { DashboardPage } from '../modules/dashboard/pages/DashboardPage';
 import { LoginPage } from '../modules/auth/pages/LoginPage';
+import { ConfiguracoesPage } from '../modules/configuracoes/pages/ConfiguracoesPage';
 
 function ProtectedRoute() {
   const { isAuthenticated } = useAuth();
@@ -49,6 +50,10 @@ export const router = createBrowserRouter([
           {
             path: '/dashboard',
             element: <DashboardPage />
+          },
+          {
+            path: '/configuracoes',
+            element: <ConfiguracoesPage />
           }
         ]
       }
