@@ -105,6 +105,16 @@ export interface DashboardFiliacaoSituacaoRegiaoDistribuicaoResponse {
   items: DashboardFiliacaoSituacaoRegiaoDistribuicaoItem[];
 }
 
+export interface DashboardFiliacaoSituacaoRegiaoEsferaDistribuicaoItem {
+  esfera: string;
+  totalQtd: number;
+  totalPercentual: number;
+}
+
+export interface DashboardFiliacaoSituacaoRegiaoEsferaDistribuicaoResponse {
+  items: DashboardFiliacaoSituacaoRegiaoEsferaDistribuicaoItem[];
+}
+
 export interface DashboardFiliacaoSituacaoRegiaoInconsistenciaItem {
   situacaoCodigo: string;
   situacaoDescricao: string;
@@ -237,6 +247,12 @@ interface DashboardFiliacaoSituacaoRegiaoDistribuicaoRow {
   regiaoDescricao: string | null;
   totalQtd: number | string;
   totalSituacaoQtd: number | string;
+}
+
+interface DashboardFiliacaoSituacaoRegiaoEsferaDistribuicaoRow {
+  esfera: string | null;
+  totalQtd: number | string;
+  totalGeralQtd: number | string;
 }
 
 interface DashboardFiliacaoSituacaoRegiaoInconsistenciaRow {
@@ -973,6 +989,90 @@ export class DashboardService {
     };
   }
 
+  async getFiliacaoSituacaoRegiaoEsferaDistribuicao(
+    situacaoCodigo: string,
+    regiaoCodigo: string
+  ): Promise<DashboardFiliacaoSituacaoRegiaoEsferaDistribuicaoResponse> {
+    const pool = await getSqlPool();
+    const result = await queryReadOnly<DashboardFiliacaoSituacaoRegiaoEsferaDistribuicaoRow>(
+      pool
+        .request()
+        .input('situacaoCodigo', sql.VarChar(20), situacaoCodigo)
+        .input('regiaoCodigo', sql.VarChar(20), regiaoCodigo),
+      `
+        WITH Base AS (
+          SELECT
+            f.SITUACAO AS situacaoCodigo,
+            CASE
+              WHEN CAST(f.SITUACAO AS VARCHAR(20)) = '1' THEN pr.REGIAO
+              WHEN CAST(f.SITUACAO AS VARCHAR(20)) = '3' THEN gc.REGIAO
+              ELSE pr.REGIAO
+            END AS regiaoCodigo,
+            CASE
+              WHEN ISNULL(cfg.ESTADUAL, 0) = 1 THEN 'ESTADO'
+              ELSE 'MUNICIPIO'
+            END AS esfera
+          FROM dbo.FILIADO AS f
+          LEFT JOIN dbo.PREDIO AS pr
+            ON pr.CODIGO_EMPRESA = f.CODIGO_EMPRESA
+            AND pr.CODIGO = f.CODIGO_PREDIO
+          LEFT JOIN dbo.PESSOAS AS pe
+            ON pe.CPF = f.CPF
+          LEFT JOIN dbo.GLO_CIDADE AS gc
+            ON gc.UF = pe.ESTADO
+            AND gc.CIDADE = pe.CIDADE
+          LEFT JOIN dbo.SINDATA_CONFIG_PREDIO_ENTE_PUBLICO AS cfg
+            ON cfg.CODIGO_EMPRESA = f.CODIGO_EMPRESA
+            AND cfg.CODIGO_PREDIO = f.CODIGO_PREDIO
+          WHERE f.ASSOCIADO = -1
+        ),
+        Filtrado AS (
+          SELECT
+            b.esfera,
+            COUNT_BIG(1) AS totalQtd
+          FROM Base AS b
+          WHERE
+            CAST(b.situacaoCodigo AS VARCHAR(20)) = @situacaoCodigo
+            AND CAST(b.regiaoCodigo AS VARCHAR(20)) = @regiaoCodigo
+          GROUP BY
+            b.esfera
+        ),
+        Categorias AS (
+          SELECT CAST('ESTADO' AS VARCHAR(20)) AS esfera
+          UNION ALL
+          SELECT CAST('MUNICIPIO' AS VARCHAR(20)) AS esfera
+        ),
+        Total AS (
+          SELECT ISNULL(SUM(f.totalQtd), 0) AS totalGeralQtd
+          FROM Filtrado AS f
+        )
+        SELECT
+          c.esfera,
+          ISNULL(f.totalQtd, 0) AS totalQtd,
+          t.totalGeralQtd
+        FROM Categorias AS c
+        LEFT JOIN Filtrado AS f
+          ON f.esfera = c.esfera
+        CROSS JOIN Total AS t
+        ORDER BY
+          c.esfera ASC
+      `
+    );
+
+    const items: DashboardFiliacaoSituacaoRegiaoEsferaDistribuicaoItem[] = result.recordset.map((row) => {
+      const totalQtd = this.parseSqlNumber(row.totalQtd ?? 0);
+      const totalGeralQtd = this.parseSqlNumber(row.totalGeralQtd ?? 0);
+
+      return {
+        esfera: String(row.esfera ?? ''),
+        totalQtd,
+        totalPercentual: this.calculatePercentage(totalQtd, totalGeralQtd)
+      };
+    });
+
+    return { items };
+  }
+
   async getFiliacaoSituacaoRegiaoInconsistencias(): Promise<DashboardFiliacaoSituacaoRegiaoInconsistenciasResponse> {
     const pool = await getSqlPool();
     const result = await queryReadOnly<DashboardFiliacaoSituacaoRegiaoInconsistenciaRow>(
@@ -1342,6 +1442,90 @@ export class DashboardService {
     return {
       items
     };
+  }
+
+  async getFiliacaoSituacaoDesfiliadosRegiaoEsferaDistribuicao(
+    situacaoCodigo: string,
+    regiaoCodigo: string
+  ): Promise<DashboardFiliacaoSituacaoRegiaoEsferaDistribuicaoResponse> {
+    const pool = await getSqlPool();
+    const result = await queryReadOnly<DashboardFiliacaoSituacaoRegiaoEsferaDistribuicaoRow>(
+      pool
+        .request()
+        .input('situacaoCodigo', sql.VarChar(20), situacaoCodigo)
+        .input('regiaoCodigo', sql.VarChar(20), regiaoCodigo),
+      `
+        WITH Base AS (
+          SELECT
+            f.SITUACAO AS situacaoCodigo,
+            CASE
+              WHEN CAST(f.SITUACAO AS VARCHAR(20)) = '1' THEN pr.REGIAO
+              WHEN CAST(f.SITUACAO AS VARCHAR(20)) = '3' THEN gc.REGIAO
+              ELSE pr.REGIAO
+            END AS regiaoCodigo,
+            CASE
+              WHEN ISNULL(cfg.ESTADUAL, 0) = 1 THEN 'ESTADO'
+              ELSE 'MUNICIPIO'
+            END AS esfera
+          FROM dbo.FILIADO AS f
+          LEFT JOIN dbo.PREDIO AS pr
+            ON pr.CODIGO_EMPRESA = f.CODIGO_EMPRESA
+            AND pr.CODIGO = f.CODIGO_PREDIO
+          LEFT JOIN dbo.PESSOAS AS pe
+            ON pe.CPF = f.CPF
+          LEFT JOIN dbo.GLO_CIDADE AS gc
+            ON gc.UF = pe.ESTADO
+            AND gc.CIDADE = pe.CIDADE
+          LEFT JOIN dbo.SINDATA_CONFIG_PREDIO_ENTE_PUBLICO AS cfg
+            ON cfg.CODIGO_EMPRESA = f.CODIGO_EMPRESA
+            AND cfg.CODIGO_PREDIO = f.CODIGO_PREDIO
+          WHERE f.ASSOCIADO = 0
+        ),
+        Filtrado AS (
+          SELECT
+            b.esfera,
+            COUNT_BIG(1) AS totalQtd
+          FROM Base AS b
+          WHERE
+            CAST(b.situacaoCodigo AS VARCHAR(20)) = @situacaoCodigo
+            AND CAST(b.regiaoCodigo AS VARCHAR(20)) = @regiaoCodigo
+          GROUP BY
+            b.esfera
+        ),
+        Categorias AS (
+          SELECT CAST('ESTADO' AS VARCHAR(20)) AS esfera
+          UNION ALL
+          SELECT CAST('MUNICIPIO' AS VARCHAR(20)) AS esfera
+        ),
+        Total AS (
+          SELECT ISNULL(SUM(f.totalQtd), 0) AS totalGeralQtd
+          FROM Filtrado AS f
+        )
+        SELECT
+          c.esfera,
+          ISNULL(f.totalQtd, 0) AS totalQtd,
+          t.totalGeralQtd
+        FROM Categorias AS c
+        LEFT JOIN Filtrado AS f
+          ON f.esfera = c.esfera
+        CROSS JOIN Total AS t
+        ORDER BY
+          c.esfera ASC
+      `
+    );
+
+    const items: DashboardFiliacaoSituacaoRegiaoEsferaDistribuicaoItem[] = result.recordset.map((row) => {
+      const totalQtd = this.parseSqlNumber(row.totalQtd ?? 0);
+      const totalGeralQtd = this.parseSqlNumber(row.totalGeralQtd ?? 0);
+
+      return {
+        esfera: String(row.esfera ?? ''),
+        totalQtd,
+        totalPercentual: this.calculatePercentage(totalQtd, totalGeralQtd)
+      };
+    });
+
+    return { items };
   }
 
   async getFiliacaoSituacaoDesfiliadosRegiaoInconsistencias(): Promise<DashboardFiliacaoSituacaoDesfiliadosRegiaoInconsistenciasResponse> {

@@ -104,6 +104,16 @@ interface DashboardFiliacaoSituacaoRegiaoDistribuicaoResponse {
   items: DashboardFiliacaoSituacaoRegiaoDistribuicaoItem[];
 }
 
+interface DashboardFiliacaoSituacaoRegiaoEsferaDistribuicaoItem {
+  esfera: string;
+  totalQtd: number;
+  totalPercentual: number;
+}
+
+interface DashboardFiliacaoSituacaoRegiaoEsferaDistribuicaoResponse {
+  items: DashboardFiliacaoSituacaoRegiaoEsferaDistribuicaoItem[];
+}
+
 interface DashboardFiliacaoSituacaoRegiaoInconsistenciaItem {
   situacaoCodigo: string;
   situacaoDescricao: string;
@@ -353,6 +363,97 @@ function AnimatedInlinePercent({ value, loading }: AnimatedInlinePercentProps) {
   return <>{`${animatedValue.toFixed(2).replace('.', ',')}%`}</>;
 }
 
+interface PieSlice {
+  label: string;
+  value: number;
+  color: string;
+}
+
+interface AnimatedPieChartProps {
+  slices: PieSlice[];
+  loading: boolean;
+}
+
+function AnimatedPieChart({ slices, loading }: AnimatedPieChartProps) {
+  const [progress, setProgress] = useState(0);
+  const radius = 68;
+  const circumference = 2 * Math.PI * radius;
+  const total = slices.reduce((acc, slice) => acc + Math.max(0, slice.value), 0);
+  const signature = slices.map((slice) => `${slice.label}:${slice.value}`).join('|');
+
+  useEffect(() => {
+    if (loading) {
+      setProgress(0);
+      return;
+    }
+
+    const durationMs = 850;
+    const start = performance.now();
+    let rafId = 0;
+
+    setProgress(0);
+    const animate = (timestamp: number) => {
+      const elapsed = timestamp - start;
+      const normalized = Math.min(elapsed / durationMs, 1);
+      const eased = 1 - (1 - normalized) ** 3;
+      setProgress(eased);
+
+      if (normalized < 1) {
+        rafId = window.requestAnimationFrame(animate);
+      }
+    };
+
+    rafId = window.requestAnimationFrame(animate);
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+    };
+  }, [loading, signature]);
+
+  let accumulated = 0;
+
+  return (
+    <div className="mx-auto flex w-full max-w-[260px] flex-col items-center">
+      <svg viewBox="0 0 220 220" className="h-52 w-52">
+        <circle cx="110" cy="110" r={radius} fill="none" stroke="#e2e8f0" strokeWidth="28" />
+        {total > 0
+          ? slices.map((slice) => {
+              const safeValue = Math.max(0, slice.value);
+              const ratio = safeValue / total;
+              const baseLength = ratio * circumference;
+              const animatedLength = baseLength * progress;
+              const dashOffset = -accumulated;
+              accumulated += baseLength;
+
+              return (
+                <circle
+                  key={slice.label}
+                  cx="110"
+                  cy="110"
+                  r={radius}
+                  fill="none"
+                  stroke={slice.color}
+                  strokeWidth="28"
+                  strokeLinecap="butt"
+                  transform="rotate(-90 110 110)"
+                  strokeDasharray={`${animatedLength} ${circumference}`}
+                  strokeDashoffset={dashOffset}
+                />
+              );
+            })
+          : null}
+        <circle cx="110" cy="110" r="44" fill="white" />
+        <text x="110" y="104" textAnchor="middle" className="fill-slate-500 text-[10px] font-semibold uppercase tracking-wide">
+          Total
+        </text>
+        <text x="110" y="124" textAnchor="middle" className="fill-slate-800 text-[15px] font-bold">
+          {total.toLocaleString('pt-BR')}
+        </text>
+      </svg>
+    </div>
+  );
+}
+
 export function DashboardPage() {
   const [resumo, setResumo] = useState<DashboardResumo>(initialResumo);
   const [loading, setLoading] = useState(true);
@@ -382,6 +483,18 @@ export function DashboardPage() {
   const [filiacaoSituacaoRegiaoDistribuicaoError, setFiliacaoSituacaoRegiaoDistribuicaoError] = useState('');
   const [filiacaoSituacaoRegiaoDistribuicao, setFiliacaoSituacaoRegiaoDistribuicao] = useState<
     DashboardFiliacaoSituacaoRegiaoDistribuicaoItem[]
+  >([]);
+  const [filiacaoSituacaoRegiaoEsferaModal, setFiliacaoSituacaoRegiaoEsferaModal] = useState<{
+    origem: 'ativos' | 'desfiliados';
+    situacaoCodigo: string;
+    situacaoDescricao: string;
+    regiaoCodigo: string;
+    regiaoDescricao: string;
+  } | null>(null);
+  const [filiacaoSituacaoRegiaoEsferaLoading, setFiliacaoSituacaoRegiaoEsferaLoading] = useState(false);
+  const [filiacaoSituacaoRegiaoEsferaError, setFiliacaoSituacaoRegiaoEsferaError] = useState('');
+  const [filiacaoSituacaoRegiaoEsferaDistribuicao, setFiliacaoSituacaoRegiaoEsferaDistribuicao] = useState<
+    DashboardFiliacaoSituacaoRegiaoEsferaDistribuicaoItem[]
   >([]);
   const [filiacaoSituacaoRegiaoAberta, setFiliacaoSituacaoRegiaoAberta] = useState('');
   const [filiacaoSituacaoRegiaoInconsistenciasLoading, setFiliacaoSituacaoRegiaoInconsistenciasLoading] =
@@ -755,13 +868,14 @@ export function DashboardPage() {
   }, [selectedCard, searchDebounced, detailsPage]);
 
   useEffect(() => {
-    if (!selectedCard) {
+    if (!selectedCard && !filiacaoSituacaoRegiaoEsferaModal) {
       return;
     }
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setSelectedCard(null);
+        setFiliacaoSituacaoRegiaoEsferaModal(null);
       }
     };
 
@@ -769,7 +883,7 @@ export function DashboardPage() {
     return () => {
       window.removeEventListener('keydown', onKeyDown);
     };
-  }, [selectedCard]);
+  }, [selectedCard, filiacaoSituacaoRegiaoEsferaModal]);
 
   const cards = useMemo<DashboardCard[]>(
     () => [
@@ -1052,6 +1166,49 @@ export function DashboardPage() {
 
   function toggleInconsistenciaRegiaoSituacao(codigo: string) {
     setFiliacaoSituacaoRegiaoInconsistenciaAberta((current) => (current === codigo ? '' : codigo));
+  }
+
+  async function openRegiaoEsferaModal(
+    situacaoCodigo: string,
+    situacaoDescricao: string,
+    regiaoCodigo: string,
+    regiaoDescricao: string,
+    origem: 'ativos' | 'desfiliados' = 'ativos'
+  ) {
+    setFiliacaoSituacaoRegiaoEsferaModal({
+      origem,
+      situacaoCodigo,
+      situacaoDescricao,
+      regiaoCodigo,
+      regiaoDescricao
+    });
+    setFiliacaoSituacaoRegiaoEsferaLoading(true);
+    setFiliacaoSituacaoRegiaoEsferaError('');
+    setFiliacaoSituacaoRegiaoEsferaDistribuicao([]);
+
+    try {
+      const endpoint =
+        origem === 'desfiliados'
+          ? '/dashboard/filiacao-situacao-desfiliados-regiao-esfera-distribuicao'
+          : '/dashboard/filiacao-situacao-regiao-esfera-distribuicao';
+      const response = await api.get<{ data: DashboardFiliacaoSituacaoRegiaoEsferaDistribuicaoResponse }>(
+        endpoint,
+        {
+          params: {
+            situacaoCodigo,
+            regiaoCodigo
+          }
+        }
+      );
+      setFiliacaoSituacaoRegiaoEsferaDistribuicao(response.data.data.items ?? []);
+    } catch {
+      setFiliacaoSituacaoRegiaoEsferaDistribuicao([]);
+      setFiliacaoSituacaoRegiaoEsferaError(
+        'Nao foi possivel carregar a distribuicao entre Estado e Municipio para a regiao selecionada.'
+      );
+    } finally {
+      setFiliacaoSituacaoRegiaoEsferaLoading(false);
+    }
   }
 
   function toggleDetalheSexoSituacaoDesfiliados(codigo: string) {
@@ -1396,9 +1553,21 @@ export function DashboardPage() {
                                         ) : (
                                           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
                                             {regiaoDaSituacao.map((regiaoItem) => (
-                                              <div
+                                              <button
                                                 key={`${regiaoItem.situacaoCodigo}-${regiaoItem.regiaoCodigo}`}
-                                                className="rounded-lg border border-slate-200 bg-white p-3"
+                                                type="button"
+                                                className="rounded-lg border border-slate-200 bg-white p-3 text-left transition hover:border-cyan-300 hover:bg-cyan-50/30 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                                                onClick={() =>
+                                                  openRegiaoEsferaModal(
+                                                    situacaoCodigo,
+                                                    item.descricao || item.codigo || 'Nao informado',
+                                                    regiaoItem.regiaoCodigo,
+                                                    regiaoItem.regiaoDescricao || regiaoItem.regiaoCodigo || 'Nao informado'
+                                                  )
+                                                }
+                                                aria-label={`Ver distribuicao Estado e Municipio da regiao ${
+                                                  regiaoItem.regiaoDescricao || regiaoItem.regiaoCodigo || 'Nao informado'
+                                                }`}
                                               >
                                                 <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700">
                                                   {regiaoItem.regiaoDescricao || regiaoItem.regiaoCodigo || 'Não informado'}
@@ -1415,7 +1584,7 @@ export function DashboardPage() {
                                                   />
                                                   )
                                                 </p>
-                                              </div>
+                                              </button>
                                             ))}
                                           </div>
                                         )}
@@ -1740,9 +1909,22 @@ export function DashboardPage() {
                                         ) : (
                                           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
                                             {regiaoDaSituacao.map((regiaoItem) => (
-                                              <div
+                                              <button
                                                 key={`${regiaoItem.situacaoCodigo}-${regiaoItem.regiaoCodigo}`}
-                                                className="rounded-lg border border-slate-200 bg-white p-3"
+                                                type="button"
+                                                className="rounded-lg border border-slate-200 bg-white p-3 text-left transition hover:border-cyan-300 hover:bg-cyan-50/30 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                                                onClick={() =>
+                                                  openRegiaoEsferaModal(
+                                                    situacaoCodigo,
+                                                    item.descricao || item.codigo || 'Nao informado',
+                                                    regiaoItem.regiaoCodigo,
+                                                    regiaoItem.regiaoDescricao || regiaoItem.regiaoCodigo || 'Nao informado',
+                                                    'desfiliados'
+                                                  )
+                                                }
+                                                aria-label={`Ver distribuicao Estado e Municipio da regiao ${
+                                                  regiaoItem.regiaoDescricao || regiaoItem.regiaoCodigo || 'Nao informado'
+                                                }`}
                                               >
                                                 <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700">
                                                   {regiaoItem.regiaoDescricao || regiaoItem.regiaoCodigo || 'Não informado'}
@@ -1759,7 +1941,7 @@ export function DashboardPage() {
                                                   />
                                                   )
                                                 </p>
-                                              </div>
+                                              </button>
                                             ))}
                                           </div>
                                         )}
@@ -1933,6 +2115,93 @@ export function DashboardPage() {
           Esta base já está pronta para evoluir com filtros avançados, relatórios detalhados e dashboards analíticos.
         </p>
       </article>
+
+      {filiacaoSituacaoRegiaoEsferaModal ? (
+        <div
+          className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/45 p-4"
+          onClick={() => setFiliacaoSituacaoRegiaoEsferaModal(null)}
+        >
+          <div
+            className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl sm:p-6"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-4">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-900">Distribuicao Estado x Municipio</h3>
+                <p className="mt-1 text-xs text-slate-500">
+                  Situacao: {filiacaoSituacaoRegiaoEsferaModal.situacaoDescricao} | Regiao:{' '}
+                  {filiacaoSituacaoRegiaoEsferaModal.regiaoDescricao}
+                </p>
+              </div>
+              <button
+                type="button"
+                className="rounded-md p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+                onClick={() => setFiliacaoSituacaoRegiaoEsferaModal(null)}
+                aria-label="Fechar"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {filiacaoSituacaoRegiaoEsferaError ? (
+              <div className="alert-error mt-4">{filiacaoSituacaoRegiaoEsferaError}</div>
+            ) : null}
+
+            <div className="mt-4 grid grid-cols-1 gap-5 md:grid-cols-[280px_1fr] md:items-center">
+              <AnimatedPieChart
+                loading={filiacaoSituacaoRegiaoEsferaLoading}
+                slices={[
+                  {
+                    label: 'Estado',
+                    value:
+                      filiacaoSituacaoRegiaoEsferaDistribuicao.find((item) => item.esfera.toUpperCase() === 'ESTADO')
+                        ?.totalQtd ?? 0,
+                    color: '#0284c7'
+                  },
+                  {
+                    label: 'Municipio',
+                    value:
+                      filiacaoSituacaoRegiaoEsferaDistribuicao.find(
+                        (item) => item.esfera.toUpperCase() === 'MUNICIPIO'
+                      )?.totalQtd ?? 0,
+                    color: '#16a34a'
+                  }
+                ]}
+              />
+
+              <div className="space-y-3">
+                {filiacaoSituacaoRegiaoEsferaLoading ? (
+                  <p className="text-sm text-slate-500">Carregando distribuicao...</p>
+                ) : (
+                  <>
+                    {filiacaoSituacaoRegiaoEsferaDistribuicao.map((item) => {
+                      const isEstado = item.esfera.toUpperCase() === 'ESTADO';
+                      return (
+                        <div
+                          key={item.esfera}
+                          className="rounded-lg border border-slate-200 bg-slate-50/70 px-3 py-2 text-sm text-slate-700"
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="inline-flex items-center gap-2 font-semibold">
+                              <span
+                                className="inline-block h-2.5 w-2.5 rounded-full"
+                                style={{ backgroundColor: isEstado ? '#0284c7' : '#16a34a' }}
+                              />
+                              {isEstado ? 'Estado' : 'Municipio'}
+                            </span>
+                            <span>{item.totalQtd.toLocaleString('pt-BR')}</span>
+                          </div>
+                          <p className="mt-1 text-xs text-slate-500">{item.totalPercentual.toFixed(2).replace('.', ',')}%</p>
+                        </div>
+                      );
+                    })}
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {selectedCard ? (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/45 p-4" onClick={() => setSelectedCard(null)}>

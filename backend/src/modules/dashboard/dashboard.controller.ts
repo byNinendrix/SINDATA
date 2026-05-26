@@ -21,6 +21,11 @@ const detalhesQuerySchema = z.object({
   pageSize: z.coerce.number().int().min(1).max(100).default(50)
 });
 
+const filiacaoSituacaoRegiaoEsferaQuerySchema = z.object({
+  situacaoCodigo: z.string().trim().min(1),
+  regiaoCodigo: z.string().trim().min(1)
+});
+
 export async function dashboardResumoController(_request: FastifyRequest, reply: FastifyReply) {
   const resumo = await dashboardService.getResumo();
 
@@ -71,6 +76,26 @@ export async function dashboardFiliacaoSituacaoRegiaoDistribuicaoController(
   const distribuicao = await dashboardService.getFiliacaoSituacaoRegiaoDistribuicao();
 
   return successResponse(reply, distribuicao, 'Distribuição por região na situação funcional carregada com sucesso.');
+}
+
+export async function dashboardFiliacaoSituacaoRegiaoEsferaDistribuicaoController(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
+  const parsedQuery = filiacaoSituacaoRegiaoEsferaQuerySchema.safeParse(request.query);
+
+  if (!parsedQuery.success) {
+    return errorResponse(reply, 'Parâmetros inválidos para distribuição Estado/Município.', 400);
+  }
+
+  const { situacaoCodigo, regiaoCodigo } = parsedQuery.data;
+  const distribuicao = await dashboardService.getFiliacaoSituacaoRegiaoEsferaDistribuicao(situacaoCodigo, regiaoCodigo);
+
+  return successResponse(
+    reply,
+    distribuicao,
+    'Distribuição Estado/Município por situação e região carregada com sucesso.'
+  );
 }
 
 export async function dashboardFiliacaoSituacaoRegiaoInconsistenciasController(
@@ -135,6 +160,29 @@ export async function dashboardFiliacaoSituacaoDesfiliadosRegiaoDistribuicaoCont
     reply,
     distribuicao,
     'Distribuição por região na situação de filiações desfiliadas carregada com sucesso.'
+  );
+}
+
+export async function dashboardFiliacaoSituacaoDesfiliadosRegiaoEsferaDistribuicaoController(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
+  const parsedQuery = filiacaoSituacaoRegiaoEsferaQuerySchema.safeParse(request.query);
+
+  if (!parsedQuery.success) {
+    return errorResponse(reply, 'Parâmetros inválidos para distribuição Estado/Município.', 400);
+  }
+
+  const { situacaoCodigo, regiaoCodigo } = parsedQuery.data;
+  const distribuicao = await dashboardService.getFiliacaoSituacaoDesfiliadosRegiaoEsferaDistribuicao(
+    situacaoCodigo,
+    regiaoCodigo
+  );
+
+  return successResponse(
+    reply,
+    distribuicao,
+    'Distribuição Estado/Município por situação e região dos desfiliados carregada com sucesso.'
   );
 }
 

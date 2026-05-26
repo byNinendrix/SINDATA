@@ -2,10 +2,12 @@ import type { FastifyInstance } from 'fastify';
 import {
   dashboardDetalhesController,
   dashboardFiliacaoSituacaoDesfiliadosDistribuicaoController,
+  dashboardFiliacaoSituacaoDesfiliadosRegiaoEsferaDistribuicaoController,
   dashboardFiliacaoSituacaoDesfiliadosRegiaoDistribuicaoController,
   dashboardFiliacaoSituacaoDesfiliadosRegiaoInconsistenciasController,
   dashboardFiliacaoSituacaoDesfiliadosSexoInconsistenciasController,
   dashboardFiliacaoSituacaoDesfiliadosSexoDistribuicaoController,
+  dashboardFiliacaoSituacaoRegiaoEsferaDistribuicaoController,
   dashboardFiliacaoSituacaoRegiaoInconsistenciasController,
   dashboardFiliacaoSituacaoRegiaoDistribuicaoController,
   dashboardFiliacaoSituacaoSexoInconsistenciasController,
@@ -40,6 +42,11 @@ export async function dashboardRoutes(app: FastifyInstance) {
     dashboardFiliacaoSituacaoRegiaoDistribuicaoController
   );
   app.get(
+    '/filiacao-situacao-regiao-esfera-distribuicao',
+    { preHandler: authMiddleware },
+    dashboardFiliacaoSituacaoRegiaoEsferaDistribuicaoController
+  );
+  app.get(
     '/filiacao-situacao-regiao-inconsistencias',
     { preHandler: authMiddleware },
     dashboardFiliacaoSituacaoRegiaoInconsistenciasController
@@ -63,6 +70,11 @@ export async function dashboardRoutes(app: FastifyInstance) {
     '/filiacao-situacao-desfiliados-regiao-distribuicao',
     { preHandler: authMiddleware },
     dashboardFiliacaoSituacaoDesfiliadosRegiaoDistribuicaoController
+  );
+  app.get(
+    '/filiacao-situacao-desfiliados-regiao-esfera-distribuicao',
+    { preHandler: authMiddleware },
+    dashboardFiliacaoSituacaoDesfiliadosRegiaoEsferaDistribuicaoController
   );
   app.get(
     '/filiacao-situacao-desfiliados-regiao-inconsistencias',
