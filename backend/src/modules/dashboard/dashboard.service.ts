@@ -80,6 +80,43 @@ export interface DashboardFiliacaoSituacaoSexoDistribuicaoResponse {
   items: DashboardFiliacaoSituacaoSexoDistribuicaoItem[];
 }
 
+export interface DashboardFiliacaoSituacaoSexoInconsistenciaItem {
+  situacaoCodigo: string;
+  situacaoDescricao: string;
+  cpf: string;
+  nome: string;
+  motivo: string;
+}
+
+export interface DashboardFiliacaoSituacaoSexoInconsistenciasResponse {
+  items: DashboardFiliacaoSituacaoSexoInconsistenciaItem[];
+}
+
+export interface DashboardFiliacaoSituacaoRegiaoDistribuicaoItem {
+  situacaoCodigo: string;
+  situacaoDescricao: string;
+  regiaoCodigo: string;
+  regiaoDescricao: string;
+  totalQtd: number;
+  totalPercentual: number;
+}
+
+export interface DashboardFiliacaoSituacaoRegiaoDistribuicaoResponse {
+  items: DashboardFiliacaoSituacaoRegiaoDistribuicaoItem[];
+}
+
+export interface DashboardFiliacaoSituacaoRegiaoInconsistenciaItem {
+  situacaoCodigo: string;
+  situacaoDescricao: string;
+  cpf: string;
+  nome: string;
+  motivo: string;
+}
+
+export interface DashboardFiliacaoSituacaoRegiaoInconsistenciasResponse {
+  items: DashboardFiliacaoSituacaoRegiaoInconsistenciaItem[];
+}
+
 export interface DashboardFiliacaoSituacaoDesfiliadosDistribuicaoItem {
   codigo: string;
   descricao: string;
@@ -102,6 +139,43 @@ export interface DashboardFiliacaoSituacaoDesfiliadosSexoDistribuicaoItem {
 
 export interface DashboardFiliacaoSituacaoDesfiliadosSexoDistribuicaoResponse {
   items: DashboardFiliacaoSituacaoDesfiliadosSexoDistribuicaoItem[];
+}
+
+export interface DashboardFiliacaoSituacaoDesfiliadosSexoInconsistenciaItem {
+  situacaoCodigo: string;
+  situacaoDescricao: string;
+  cpf: string;
+  nome: string;
+  motivo: string;
+}
+
+export interface DashboardFiliacaoSituacaoDesfiliadosSexoInconsistenciasResponse {
+  items: DashboardFiliacaoSituacaoDesfiliadosSexoInconsistenciaItem[];
+}
+
+export interface DashboardFiliacaoSituacaoDesfiliadosRegiaoDistribuicaoItem {
+  situacaoCodigo: string;
+  situacaoDescricao: string;
+  regiaoCodigo: string;
+  regiaoDescricao: string;
+  totalQtd: number;
+  totalPercentual: number;
+}
+
+export interface DashboardFiliacaoSituacaoDesfiliadosRegiaoDistribuicaoResponse {
+  items: DashboardFiliacaoSituacaoDesfiliadosRegiaoDistribuicaoItem[];
+}
+
+export interface DashboardFiliacaoSituacaoDesfiliadosRegiaoInconsistenciaItem {
+  situacaoCodigo: string;
+  situacaoDescricao: string;
+  cpf: string;
+  nome: string;
+  motivo: string;
+}
+
+export interface DashboardFiliacaoSituacaoDesfiliadosRegiaoInconsistenciasResponse {
+  items: DashboardFiliacaoSituacaoDesfiliadosRegiaoInconsistenciaItem[];
 }
 
 interface TotalPessoasRow {
@@ -148,6 +222,31 @@ interface DashboardFiliacaoSituacaoSexoDistribuicaoRow {
   totalSituacaoQtd: number | string;
 }
 
+interface DashboardFiliacaoSituacaoSexoInconsistenciaRow {
+  situacaoCodigo: string | null;
+  situacaoDescricao: string | null;
+  cpf: string | null;
+  nome: string | null;
+  motivo: string | null;
+}
+
+interface DashboardFiliacaoSituacaoRegiaoDistribuicaoRow {
+  situacaoCodigo: string | null;
+  situacaoDescricao: string | null;
+  regiaoCodigo: string | null;
+  regiaoDescricao: string | null;
+  totalQtd: number | string;
+  totalSituacaoQtd: number | string;
+}
+
+interface DashboardFiliacaoSituacaoRegiaoInconsistenciaRow {
+  situacaoCodigo: string | null;
+  situacaoDescricao: string | null;
+  cpf: string | null;
+  nome: string | null;
+  motivo: string | null;
+}
+
 interface DashboardFiliacaoSituacaoDesfiliadosDistribuicaoRow {
   codigo: string | null;
   descricao: string | null;
@@ -161,6 +260,31 @@ interface DashboardFiliacaoSituacaoDesfiliadosSexoDistribuicaoRow {
   generoDescricao: string | null;
   totalQtd: number | string;
   totalSituacaoQtd: number | string;
+}
+
+interface DashboardFiliacaoSituacaoDesfiliadosSexoInconsistenciaRow {
+  situacaoCodigo: string | null;
+  situacaoDescricao: string | null;
+  cpf: string | null;
+  nome: string | null;
+  motivo: string | null;
+}
+
+interface DashboardFiliacaoSituacaoDesfiliadosRegiaoDistribuicaoRow {
+  situacaoCodigo: string | null;
+  situacaoDescricao: string | null;
+  regiaoCodigo: string | null;
+  regiaoDescricao: string | null;
+  totalQtd: number | string;
+  totalSituacaoQtd: number | string;
+}
+
+interface DashboardFiliacaoSituacaoDesfiliadosRegiaoInconsistenciaRow {
+  situacaoCodigo: string | null;
+  situacaoDescricao: string | null;
+  cpf: string | null;
+  nome: string | null;
+  motivo: string | null;
 }
 
 export class DashboardService {
@@ -594,6 +718,7 @@ export class DashboardService {
         FROM dbo.SITUACAO_FILIADO AS sf
         LEFT JOIN dbo.FILIADO AS f
           ON f.SITUACAO = sf.CODIGO
+          AND f.ASSOCIADO = -1
         WHERE sf.ATIVO = 1
         GROUP BY
           sf.CODIGO,
@@ -610,7 +735,7 @@ export class DashboardService {
         codigo: String(row.codigo ?? ''),
         descricao: String(row.descricao ?? ''),
         totalFiliacoesQtd,
-        totalFiliacoesPercentual: this.calculatePercentage(totalFiliacoesQtd, resumo.totalFiliacoes)
+        totalFiliacoesPercentual: this.calculatePercentage(totalFiliacoesQtd, resumo.totalFiliacoesAtivas)
       };
     });
 
@@ -645,6 +770,7 @@ export class DashboardService {
           FROM dbo.FILIADO AS f
           LEFT JOIN dbo.PESSOAS AS p
             ON p.CPF = f.CPF
+          WHERE f.ASSOCIADO = -1
           GROUP BY
             f.SITUACAO,
             p.SEXO
@@ -654,6 +780,7 @@ export class DashboardService {
             f.SITUACAO AS situacaoCodigo,
             COUNT_BIG(1) AS totalSituacaoQtd
           FROM dbo.FILIADO AS f
+          WHERE f.ASSOCIADO = -1
           GROUP BY
             f.SITUACAO
         )
@@ -694,6 +821,259 @@ export class DashboardService {
     return {
       items
     };
+  }
+
+  async getFiliacaoSituacaoSexoInconsistencias(): Promise<DashboardFiliacaoSituacaoSexoInconsistenciasResponse> {
+    const pool = await getSqlPool();
+    const result = await queryReadOnly<DashboardFiliacaoSituacaoSexoInconsistenciaRow>(
+      pool.request(),
+      `
+        WITH Base AS (
+          SELECT
+            f.SITUACAO AS situacaoCodigo,
+            sf.DESCRICAO AS situacaoDescricao,
+            f.CPF AS cpf,
+            p.NOME AS nome,
+            p.CPF AS pessoaCpf,
+            p.SEXO AS sexoPessoa,
+            g.GENERO AS generoValido
+          FROM dbo.FILIADO AS f
+          INNER JOIN dbo.SITUACAO_FILIADO AS sf
+            ON sf.CODIGO = f.SITUACAO
+            AND sf.ATIVO = 1
+          LEFT JOIN dbo.PESSOAS AS p
+            ON p.CPF = f.CPF
+          LEFT JOIN dbo.GENERO AS g
+            ON g.GENERO = p.SEXO
+          WHERE f.ASSOCIADO = -1
+            AND p.CPF IS NOT NULL
+        )
+        SELECT
+          b.situacaoCodigo,
+          b.situacaoDescricao,
+          b.cpf,
+          b.nome,
+          CASE
+            WHEN NULLIF(LTRIM(RTRIM(COALESCE(b.sexoPessoa, ''))), '') IS NULL THEN 'Pessoa sem sexo informado.'
+            WHEN b.generoValido IS NULL THEN 'Sexo da pessoa sem correspondência na tabela GENERO.'
+            ELSE 'Inconsistência de sexo.'
+          END AS motivo
+        FROM Base AS b
+        WHERE
+          NULLIF(LTRIM(RTRIM(COALESCE(b.sexoPessoa, ''))), '') IS NULL
+          OR b.generoValido IS NULL
+        ORDER BY
+          b.situacaoDescricao ASC,
+          b.nome ASC,
+          b.cpf ASC
+      `
+    );
+
+    const items: DashboardFiliacaoSituacaoSexoInconsistenciaItem[] = result.recordset.map((row) => ({
+      situacaoCodigo: String(row.situacaoCodigo ?? ''),
+      situacaoDescricao: String(row.situacaoDescricao ?? ''),
+      cpf: String(row.cpf ?? ''),
+      nome: String(row.nome ?? ''),
+      motivo: String(row.motivo ?? '')
+    }));
+
+    return { items };
+  }
+
+  async getFiliacaoSituacaoRegiaoDistribuicao(): Promise<DashboardFiliacaoSituacaoRegiaoDistribuicaoResponse> {
+    const pool = await getSqlPool();
+    const result = await queryReadOnly<DashboardFiliacaoSituacaoRegiaoDistribuicaoRow>(
+      pool.request(),
+      `
+        WITH SituacoesAtivas AS (
+          SELECT
+            sf.CODIGO AS codigo,
+            sf.DESCRICAO AS descricao
+          FROM dbo.SITUACAO_FILIADO AS sf
+          WHERE sf.ATIVO = 1
+        ),
+        Regioes AS (
+          SELECT
+            r.CODIGO AS codigo,
+            r.DESCRICAO AS descricao
+          FROM dbo.REGIAO AS r
+        ),
+        FiliacoesAtivasPorSituacaoRegiao AS (
+          SELECT
+            f.SITUACAO AS situacaoCodigo,
+            CASE
+              WHEN CAST(f.SITUACAO AS VARCHAR(20)) = '1' THEN pr.REGIAO
+              WHEN CAST(f.SITUACAO AS VARCHAR(20)) = '3' THEN gc.REGIAO
+              ELSE pr.REGIAO
+            END AS regiaoCodigo,
+            COUNT_BIG(1) AS totalQtd
+          FROM dbo.FILIADO AS f
+          LEFT JOIN dbo.PREDIO AS pr
+            ON pr.CODIGO_EMPRESA = f.CODIGO_EMPRESA
+            AND pr.CODIGO = f.CODIGO_PREDIO
+          LEFT JOIN dbo.PESSOAS AS pe
+            ON pe.CPF = f.CPF
+          LEFT JOIN dbo.GLO_CIDADE AS gc
+            ON gc.UF = pe.ESTADO
+            AND gc.CIDADE = pe.CIDADE
+          WHERE f.ASSOCIADO = -1
+          GROUP BY
+            f.SITUACAO,
+            CASE
+              WHEN CAST(f.SITUACAO AS VARCHAR(20)) = '1' THEN pr.REGIAO
+              WHEN CAST(f.SITUACAO AS VARCHAR(20)) = '3' THEN gc.REGIAO
+              ELSE pr.REGIAO
+            END
+        ),
+        TotaisAtivosPorSituacao AS (
+          SELECT
+            f.SITUACAO AS situacaoCodigo,
+            COUNT_BIG(1) AS totalSituacaoQtd
+          FROM dbo.FILIADO AS f
+          WHERE f.ASSOCIADO = -1
+          GROUP BY
+            f.SITUACAO
+        )
+        SELECT
+          sa.codigo AS situacaoCodigo,
+          sa.descricao AS situacaoDescricao,
+          r.codigo AS regiaoCodigo,
+          r.descricao AS regiaoDescricao,
+          ISNULL(fsr.totalQtd, 0) AS totalQtd,
+          ISNULL(tas.totalSituacaoQtd, 0) AS totalSituacaoQtd
+        FROM SituacoesAtivas AS sa
+        CROSS JOIN Regioes AS r
+        LEFT JOIN FiliacoesAtivasPorSituacaoRegiao AS fsr
+          ON fsr.situacaoCodigo = sa.codigo
+          AND fsr.regiaoCodigo = r.codigo
+        LEFT JOIN TotaisAtivosPorSituacao AS tas
+          ON tas.situacaoCodigo = sa.codigo
+        ORDER BY
+          sa.descricao ASC,
+          r.descricao ASC
+      `
+    );
+
+    const items: DashboardFiliacaoSituacaoRegiaoDistribuicaoItem[] = result.recordset.map((row) => {
+      const totalQtd = this.parseSqlNumber(row.totalQtd ?? 0);
+      const totalSituacaoQtd = this.parseSqlNumber(row.totalSituacaoQtd ?? 0);
+
+      return {
+        situacaoCodigo: String(row.situacaoCodigo ?? ''),
+        situacaoDescricao: String(row.situacaoDescricao ?? ''),
+        regiaoCodigo: String(row.regiaoCodigo ?? ''),
+        regiaoDescricao: String(row.regiaoDescricao ?? ''),
+        totalQtd,
+        totalPercentual: this.calculatePercentage(totalQtd, totalSituacaoQtd)
+      };
+    });
+
+    return {
+      items
+    };
+  }
+
+  async getFiliacaoSituacaoRegiaoInconsistencias(): Promise<DashboardFiliacaoSituacaoRegiaoInconsistenciasResponse> {
+    const pool = await getSqlPool();
+    const result = await queryReadOnly<DashboardFiliacaoSituacaoRegiaoInconsistenciaRow>(
+      pool.request(),
+      `
+        WITH Base AS (
+          SELECT
+            f.SITUACAO AS situacaoCodigo,
+            sf.DESCRICAO AS situacaoDescricao,
+            f.CPF AS cpf,
+            p.NOME AS nome,
+            p.CPF AS pessoaCpf,
+            p.ESTADO AS estadoPessoa,
+            p.CIDADE AS cidadePessoa,
+            pr.CODIGO AS predioCodigo,
+            pr.REGIAO AS predioRegiaoCodigo,
+            gc.UF AS cidadeMapeadaUf,
+            gc.CIDADE AS cidadeMapeadaNome,
+            gc.REGIAO AS cidadeRegiaoCodigo,
+            CASE
+              WHEN CAST(f.SITUACAO AS VARCHAR(20)) = '1' THEN pr.REGIAO
+              WHEN CAST(f.SITUACAO AS VARCHAR(20)) = '3' THEN gc.REGIAO
+              ELSE pr.REGIAO
+            END AS regiaoCodigo
+          FROM dbo.FILIADO AS f
+          INNER JOIN dbo.SITUACAO_FILIADO AS sf
+            ON sf.CODIGO = f.SITUACAO
+            AND sf.ATIVO = 1
+          LEFT JOIN dbo.PESSOAS AS p
+            ON p.CPF = f.CPF
+          LEFT JOIN dbo.PREDIO AS pr
+            ON pr.CODIGO_EMPRESA = f.CODIGO_EMPRESA
+            AND pr.CODIGO = f.CODIGO_PREDIO
+          LEFT JOIN dbo.GLO_CIDADE AS gc
+            ON gc.UF = p.ESTADO
+            AND gc.CIDADE = p.CIDADE
+          WHERE f.ASSOCIADO = -1
+            AND p.CPF IS NOT NULL
+        ),
+        Classificada AS (
+          SELECT
+            b.situacaoCodigo,
+            b.situacaoDescricao,
+            b.cpf,
+            b.nome,
+            b.regiaoCodigo,
+            CASE
+              WHEN CAST(b.situacaoCodigo AS VARCHAR(20)) = '1' AND b.predioCodigo IS NULL
+                THEN 'Filiação sem vínculo de prédio válido (CÓDIGO_EMPRESA/CÓDIGO_PREDIO).'
+              WHEN CAST(b.situacaoCodigo AS VARCHAR(20)) = '1' AND b.predioRegiaoCodigo IS NULL
+                THEN 'Prédio vinculado sem região informada.'
+              WHEN CAST(b.situacaoCodigo AS VARCHAR(20)) = '3'
+                AND (
+                  NULLIF(LTRIM(RTRIM(COALESCE(b.estadoPessoa, ''))), '') IS NULL
+                  OR NULLIF(LTRIM(RTRIM(COALESCE(b.cidadePessoa, ''))), '') IS NULL
+                )
+                THEN 'Pessoa sem UF/Cidade preenchidos para mapear região.'
+              WHEN CAST(b.situacaoCodigo AS VARCHAR(20)) = '3' AND b.cidadeMapeadaUf IS NULL
+                THEN 'UF/Cidade da pessoa não encontrada na GLO_CIDADE.'
+              WHEN CAST(b.situacaoCodigo AS VARCHAR(20)) = '3' AND b.cidadeRegiaoCodigo IS NULL
+                THEN 'Cidade da pessoa sem região informada na GLO_CIDADE.'
+              ELSE NULL
+            END AS motivoBase
+          FROM Base AS b
+        )
+        SELECT
+          c.situacaoCodigo,
+          c.situacaoDescricao,
+          c.cpf,
+          c.nome,
+          CASE
+            WHEN c.motivoBase IS NOT NULL THEN c.motivoBase
+            WHEN c.regiaoCodigo IS NULL THEN 'Registro sem região válida para mapeamento.'
+            WHEN r.CODIGO IS NULL THEN 'Código de região sem correspondência na tabela REGIAO.'
+            ELSE 'Inconsistência de região.'
+          END AS motivo
+        FROM Classificada AS c
+        LEFT JOIN dbo.REGIAO AS r
+          ON r.CODIGO = c.regiaoCodigo
+        WHERE
+          c.motivoBase IS NOT NULL
+          OR (
+            c.regiaoCodigo IS NULL
+            OR r.CODIGO IS NULL
+          )
+        ORDER BY
+          c.situacaoDescricao ASC,
+          c.nome ASC,
+          c.cpf ASC
+      `
+    );
+
+    const items: DashboardFiliacaoSituacaoRegiaoInconsistenciaItem[] = result.recordset.map((row) => ({
+      situacaoCodigo: String(row.situacaoCodigo ?? ''),
+      situacaoDescricao: String(row.situacaoDescricao ?? ''),
+      cpf: String(row.cpf ?? ''),
+      nome: String(row.nome ?? ''),
+      motivo: String(row.motivo ?? '')
+    }));
+
+    return { items };
   }
 
   async getFiliacaoSituacaoDesfiliadosDistribuicao(): Promise<DashboardFiliacaoSituacaoDesfiliadosDistribuicaoResponse> {
@@ -812,5 +1192,258 @@ export class DashboardService {
     return {
       items
     };
+  }
+
+  async getFiliacaoSituacaoDesfiliadosSexoInconsistencias(): Promise<DashboardFiliacaoSituacaoDesfiliadosSexoInconsistenciasResponse> {
+    const pool = await getSqlPool();
+    const result = await queryReadOnly<DashboardFiliacaoSituacaoDesfiliadosSexoInconsistenciaRow>(
+      pool.request(),
+      `
+        WITH Base AS (
+          SELECT
+            f.SITUACAO AS situacaoCodigo,
+            sf.DESCRICAO AS situacaoDescricao,
+            f.CPF AS cpf,
+            p.NOME AS nome,
+            p.CPF AS pessoaCpf,
+            p.SEXO AS sexoPessoa,
+            g.GENERO AS generoValido
+          FROM dbo.FILIADO AS f
+          INNER JOIN dbo.SITUACAO_FILIADO AS sf
+            ON sf.CODIGO = f.SITUACAO
+            AND sf.ATIVO = 1
+          LEFT JOIN dbo.PESSOAS AS p
+            ON p.CPF = f.CPF
+          LEFT JOIN dbo.GENERO AS g
+            ON g.GENERO = p.SEXO
+          WHERE f.ASSOCIADO = 0
+            AND p.CPF IS NOT NULL
+        )
+        SELECT
+          b.situacaoCodigo,
+          b.situacaoDescricao,
+          b.cpf,
+          b.nome,
+          CASE
+            WHEN NULLIF(LTRIM(RTRIM(COALESCE(b.sexoPessoa, ''))), '') IS NULL THEN 'Pessoa sem sexo informado.'
+            WHEN b.generoValido IS NULL THEN 'Sexo da pessoa sem correspondência na tabela GENERO.'
+            ELSE 'Inconsistência de sexo.'
+          END AS motivo
+        FROM Base AS b
+        WHERE
+          NULLIF(LTRIM(RTRIM(COALESCE(b.sexoPessoa, ''))), '') IS NULL
+          OR b.generoValido IS NULL
+        ORDER BY
+          b.situacaoDescricao ASC,
+          b.nome ASC,
+          b.cpf ASC
+      `
+    );
+
+    const items: DashboardFiliacaoSituacaoDesfiliadosSexoInconsistenciaItem[] = result.recordset.map((row) => ({
+      situacaoCodigo: String(row.situacaoCodigo ?? ''),
+      situacaoDescricao: String(row.situacaoDescricao ?? ''),
+      cpf: String(row.cpf ?? ''),
+      nome: String(row.nome ?? ''),
+      motivo: String(row.motivo ?? '')
+    }));
+
+    return { items };
+  }
+
+  async getFiliacaoSituacaoDesfiliadosRegiaoDistribuicao(): Promise<DashboardFiliacaoSituacaoDesfiliadosRegiaoDistribuicaoResponse> {
+    const pool = await getSqlPool();
+    const result = await queryReadOnly<DashboardFiliacaoSituacaoDesfiliadosRegiaoDistribuicaoRow>(
+      pool.request(),
+      `
+        WITH SituacoesAtivas AS (
+          SELECT
+            sf.CODIGO AS codigo,
+            sf.DESCRICAO AS descricao
+          FROM dbo.SITUACAO_FILIADO AS sf
+          WHERE sf.ATIVO = 1
+        ),
+        Regioes AS (
+          SELECT
+            r.CODIGO AS codigo,
+            r.DESCRICAO AS descricao
+          FROM dbo.REGIAO AS r
+        ),
+        DesfiliadosPorSituacaoRegiao AS (
+          SELECT
+            f.SITUACAO AS situacaoCodigo,
+            CASE
+              WHEN CAST(f.SITUACAO AS VARCHAR(20)) = '1' THEN pr.REGIAO
+              WHEN CAST(f.SITUACAO AS VARCHAR(20)) = '3' THEN gc.REGIAO
+              ELSE pr.REGIAO
+            END AS regiaoCodigo,
+            COUNT_BIG(1) AS totalQtd
+          FROM dbo.FILIADO AS f
+          LEFT JOIN dbo.PREDIO AS pr
+            ON pr.CODIGO_EMPRESA = f.CODIGO_EMPRESA
+            AND pr.CODIGO = f.CODIGO_PREDIO
+          LEFT JOIN dbo.PESSOAS AS pe
+            ON pe.CPF = f.CPF
+          LEFT JOIN dbo.GLO_CIDADE AS gc
+            ON gc.UF = pe.ESTADO
+            AND gc.CIDADE = pe.CIDADE
+          WHERE f.ASSOCIADO = 0
+          GROUP BY
+            f.SITUACAO,
+            CASE
+              WHEN CAST(f.SITUACAO AS VARCHAR(20)) = '1' THEN pr.REGIAO
+              WHEN CAST(f.SITUACAO AS VARCHAR(20)) = '3' THEN gc.REGIAO
+              ELSE pr.REGIAO
+            END
+        ),
+        TotaisDesfiliadosPorSituacao AS (
+          SELECT
+            f.SITUACAO AS situacaoCodigo,
+            COUNT_BIG(1) AS totalSituacaoQtd
+          FROM dbo.FILIADO AS f
+          WHERE f.ASSOCIADO = 0
+          GROUP BY
+            f.SITUACAO
+        )
+        SELECT
+          sa.codigo AS situacaoCodigo,
+          sa.descricao AS situacaoDescricao,
+          r.codigo AS regiaoCodigo,
+          r.descricao AS regiaoDescricao,
+          ISNULL(dsr.totalQtd, 0) AS totalQtd,
+          ISNULL(tds.totalSituacaoQtd, 0) AS totalSituacaoQtd
+        FROM SituacoesAtivas AS sa
+        CROSS JOIN Regioes AS r
+        LEFT JOIN DesfiliadosPorSituacaoRegiao AS dsr
+          ON dsr.situacaoCodigo = sa.codigo
+          AND dsr.regiaoCodigo = r.codigo
+        LEFT JOIN TotaisDesfiliadosPorSituacao AS tds
+          ON tds.situacaoCodigo = sa.codigo
+        ORDER BY
+          sa.descricao ASC,
+          r.descricao ASC
+      `
+    );
+
+    const items: DashboardFiliacaoSituacaoDesfiliadosRegiaoDistribuicaoItem[] = result.recordset.map((row) => {
+      const totalQtd = this.parseSqlNumber(row.totalQtd ?? 0);
+      const totalSituacaoQtd = this.parseSqlNumber(row.totalSituacaoQtd ?? 0);
+
+      return {
+        situacaoCodigo: String(row.situacaoCodigo ?? ''),
+        situacaoDescricao: String(row.situacaoDescricao ?? ''),
+        regiaoCodigo: String(row.regiaoCodigo ?? ''),
+        regiaoDescricao: String(row.regiaoDescricao ?? ''),
+        totalQtd,
+        totalPercentual: this.calculatePercentage(totalQtd, totalSituacaoQtd)
+      };
+    });
+
+    return {
+      items
+    };
+  }
+
+  async getFiliacaoSituacaoDesfiliadosRegiaoInconsistencias(): Promise<DashboardFiliacaoSituacaoDesfiliadosRegiaoInconsistenciasResponse> {
+    const pool = await getSqlPool();
+    const result = await queryReadOnly<DashboardFiliacaoSituacaoDesfiliadosRegiaoInconsistenciaRow>(
+      pool.request(),
+      `
+        WITH Base AS (
+          SELECT
+            f.SITUACAO AS situacaoCodigo,
+            sf.DESCRICAO AS situacaoDescricao,
+            f.CPF AS cpf,
+            p.NOME AS nome,
+            p.CPF AS pessoaCpf,
+            p.ESTADO AS estadoPessoa,
+            p.CIDADE AS cidadePessoa,
+            pr.CODIGO AS predioCodigo,
+            pr.REGIAO AS predioRegiaoCodigo,
+            gc.UF AS cidadeMapeadaUf,
+            gc.CIDADE AS cidadeMapeadaNome,
+            gc.REGIAO AS cidadeRegiaoCodigo,
+            CASE
+              WHEN CAST(f.SITUACAO AS VARCHAR(20)) = '1' THEN pr.REGIAO
+              WHEN CAST(f.SITUACAO AS VARCHAR(20)) = '3' THEN gc.REGIAO
+              ELSE pr.REGIAO
+            END AS regiaoCodigo
+          FROM dbo.FILIADO AS f
+          INNER JOIN dbo.SITUACAO_FILIADO AS sf
+            ON sf.CODIGO = f.SITUACAO
+            AND sf.ATIVO = 1
+          LEFT JOIN dbo.PESSOAS AS p
+            ON p.CPF = f.CPF
+          LEFT JOIN dbo.PREDIO AS pr
+            ON pr.CODIGO_EMPRESA = f.CODIGO_EMPRESA
+            AND pr.CODIGO = f.CODIGO_PREDIO
+          LEFT JOIN dbo.GLO_CIDADE AS gc
+            ON gc.UF = p.ESTADO
+            AND gc.CIDADE = p.CIDADE
+          WHERE f.ASSOCIADO = 0
+            AND p.CPF IS NOT NULL
+        ),
+        Classificada AS (
+          SELECT
+            b.situacaoCodigo,
+            b.situacaoDescricao,
+            b.cpf,
+            b.nome,
+            b.regiaoCodigo,
+            CASE
+              WHEN CAST(b.situacaoCodigo AS VARCHAR(20)) = '1' AND b.predioCodigo IS NULL
+                THEN 'Filiação sem vínculo de prédio válido (CÓDIGO_EMPRESA/CÓDIGO_PREDIO).'
+              WHEN CAST(b.situacaoCodigo AS VARCHAR(20)) = '1' AND b.predioRegiaoCodigo IS NULL
+                THEN 'Prédio vinculado sem região informada.'
+              WHEN CAST(b.situacaoCodigo AS VARCHAR(20)) = '3'
+                AND (
+                  NULLIF(LTRIM(RTRIM(COALESCE(b.estadoPessoa, ''))), '') IS NULL
+                  OR NULLIF(LTRIM(RTRIM(COALESCE(b.cidadePessoa, ''))), '') IS NULL
+                )
+                THEN 'Pessoa sem UF/Cidade preenchidos para mapear região.'
+              WHEN CAST(b.situacaoCodigo AS VARCHAR(20)) = '3' AND b.cidadeMapeadaUf IS NULL
+                THEN 'UF/Cidade da pessoa não encontrada na GLO_CIDADE.'
+              WHEN CAST(b.situacaoCodigo AS VARCHAR(20)) = '3' AND b.cidadeRegiaoCodigo IS NULL
+                THEN 'Cidade da pessoa sem região informada na GLO_CIDADE.'
+              ELSE NULL
+            END AS motivoBase
+          FROM Base AS b
+        )
+        SELECT
+          c.situacaoCodigo,
+          c.situacaoDescricao,
+          c.cpf,
+          c.nome,
+          CASE
+            WHEN c.motivoBase IS NOT NULL THEN c.motivoBase
+            WHEN c.regiaoCodigo IS NULL THEN 'Registro sem região válida para mapeamento.'
+            WHEN r.CODIGO IS NULL THEN 'Código de região sem correspondência na tabela REGIAO.'
+            ELSE 'Inconsistência de região.'
+          END AS motivo
+        FROM Classificada AS c
+        LEFT JOIN dbo.REGIAO AS r
+          ON r.CODIGO = c.regiaoCodigo
+        WHERE
+          c.motivoBase IS NOT NULL
+          OR (
+          c.regiaoCodigo IS NULL
+          OR r.CODIGO IS NULL
+        )
+        ORDER BY
+          c.situacaoDescricao ASC,
+          c.nome ASC,
+          c.cpf ASC
+      `
+    );
+
+    const items: DashboardFiliacaoSituacaoDesfiliadosRegiaoInconsistenciaItem[] = result.recordset.map((row) => ({
+      situacaoCodigo: String(row.situacaoCodigo ?? ''),
+      situacaoDescricao: String(row.situacaoDescricao ?? ''),
+      cpf: String(row.cpf ?? ''),
+      nome: String(row.nome ?? ''),
+      motivo: String(row.motivo ?? '')
+    }));
+
+    return { items };
   }
 }

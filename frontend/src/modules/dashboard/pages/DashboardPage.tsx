@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useState } from 'react';
+﻿import { Fragment, useEffect, useMemo, useState } from 'react';
 import { ChevronDown, ChevronRight, ChevronUp, Search, X } from 'lucide-react';
 import api from '../../../services/api';
 
@@ -79,6 +79,43 @@ interface DashboardFiliacaoSituacaoSexoDistribuicaoResponse {
   items: DashboardFiliacaoSituacaoSexoDistribuicaoItem[];
 }
 
+interface DashboardFiliacaoSituacaoSexoInconsistenciaItem {
+  situacaoCodigo: string;
+  situacaoDescricao: string;
+  cpf: string;
+  nome: string;
+  motivo: string;
+}
+
+interface DashboardFiliacaoSituacaoSexoInconsistenciasResponse {
+  items: DashboardFiliacaoSituacaoSexoInconsistenciaItem[];
+}
+
+interface DashboardFiliacaoSituacaoRegiaoDistribuicaoItem {
+  situacaoCodigo: string;
+  situacaoDescricao: string;
+  regiaoCodigo: string;
+  regiaoDescricao: string;
+  totalQtd: number;
+  totalPercentual: number;
+}
+
+interface DashboardFiliacaoSituacaoRegiaoDistribuicaoResponse {
+  items: DashboardFiliacaoSituacaoRegiaoDistribuicaoItem[];
+}
+
+interface DashboardFiliacaoSituacaoRegiaoInconsistenciaItem {
+  situacaoCodigo: string;
+  situacaoDescricao: string;
+  cpf: string;
+  nome: string;
+  motivo: string;
+}
+
+interface DashboardFiliacaoSituacaoRegiaoInconsistenciasResponse {
+  items: DashboardFiliacaoSituacaoRegiaoInconsistenciaItem[];
+}
+
 interface DashboardFiliacaoSituacaoDesfiliadosDistribuicaoItem {
   codigo: string;
   descricao: string;
@@ -101,6 +138,43 @@ interface DashboardFiliacaoSituacaoDesfiliadosSexoDistribuicaoItem {
 
 interface DashboardFiliacaoSituacaoDesfiliadosSexoDistribuicaoResponse {
   items: DashboardFiliacaoSituacaoDesfiliadosSexoDistribuicaoItem[];
+}
+
+interface DashboardFiliacaoSituacaoDesfiliadosSexoInconsistenciaItem {
+  situacaoCodigo: string;
+  situacaoDescricao: string;
+  cpf: string;
+  nome: string;
+  motivo: string;
+}
+
+interface DashboardFiliacaoSituacaoDesfiliadosSexoInconsistenciasResponse {
+  items: DashboardFiliacaoSituacaoDesfiliadosSexoInconsistenciaItem[];
+}
+
+interface DashboardFiliacaoSituacaoDesfiliadosRegiaoDistribuicaoItem {
+  situacaoCodigo: string;
+  situacaoDescricao: string;
+  regiaoCodigo: string;
+  regiaoDescricao: string;
+  totalQtd: number;
+  totalPercentual: number;
+}
+
+interface DashboardFiliacaoSituacaoDesfiliadosRegiaoDistribuicaoResponse {
+  items: DashboardFiliacaoSituacaoDesfiliadosRegiaoDistribuicaoItem[];
+}
+
+interface DashboardFiliacaoSituacaoDesfiliadosRegiaoInconsistenciaItem {
+  situacaoCodigo: string;
+  situacaoDescricao: string;
+  cpf: string;
+  nome: string;
+  motivo: string;
+}
+
+interface DashboardFiliacaoSituacaoDesfiliadosRegiaoInconsistenciasResponse {
+  items: DashboardFiliacaoSituacaoDesfiliadosRegiaoInconsistenciaItem[];
 }
 
 interface DashboardCard {
@@ -298,6 +372,25 @@ export function DashboardPage() {
     DashboardFiliacaoSituacaoSexoDistribuicaoItem[]
   >([]);
   const [filiacaoSituacaoSexoAberta, setFiliacaoSituacaoSexoAberta] = useState('');
+  const [filiacaoSituacaoSexoInconsistenciasLoading, setFiliacaoSituacaoSexoInconsistenciasLoading] = useState(true);
+  const [filiacaoSituacaoSexoInconsistenciasError, setFiliacaoSituacaoSexoInconsistenciasError] = useState('');
+  const [filiacaoSituacaoSexoInconsistencias, setFiliacaoSituacaoSexoInconsistencias] = useState<
+    DashboardFiliacaoSituacaoSexoInconsistenciaItem[]
+  >([]);
+  const [filiacaoSituacaoSexoInconsistenciaAberta, setFiliacaoSituacaoSexoInconsistenciaAberta] = useState('');
+  const [filiacaoSituacaoRegiaoDistribuicaoLoading, setFiliacaoSituacaoRegiaoDistribuicaoLoading] = useState(true);
+  const [filiacaoSituacaoRegiaoDistribuicaoError, setFiliacaoSituacaoRegiaoDistribuicaoError] = useState('');
+  const [filiacaoSituacaoRegiaoDistribuicao, setFiliacaoSituacaoRegiaoDistribuicao] = useState<
+    DashboardFiliacaoSituacaoRegiaoDistribuicaoItem[]
+  >([]);
+  const [filiacaoSituacaoRegiaoAberta, setFiliacaoSituacaoRegiaoAberta] = useState('');
+  const [filiacaoSituacaoRegiaoInconsistenciasLoading, setFiliacaoSituacaoRegiaoInconsistenciasLoading] =
+    useState(true);
+  const [filiacaoSituacaoRegiaoInconsistenciasError, setFiliacaoSituacaoRegiaoInconsistenciasError] = useState('');
+  const [filiacaoSituacaoRegiaoInconsistencias, setFiliacaoSituacaoRegiaoInconsistencias] = useState<
+    DashboardFiliacaoSituacaoRegiaoInconsistenciaItem[]
+  >([]);
+  const [filiacaoSituacaoRegiaoInconsistenciaAberta, setFiliacaoSituacaoRegiaoInconsistenciaAberta] = useState('');
   const [filiacaoSituacaoDesfiliadosLoading, setFiliacaoSituacaoDesfiliadosLoading] = useState(true);
   const [filiacaoSituacaoDesfiliadosError, setFiliacaoSituacaoDesfiliadosError] = useState('');
   const [filiacaoSituacaoDesfiliados, setFiliacaoSituacaoDesfiliados] = useState<
@@ -310,6 +403,28 @@ export function DashboardPage() {
     DashboardFiliacaoSituacaoDesfiliadosSexoDistribuicaoItem[]
   >([]);
   const [filiacaoSituacaoDesfiliadosSexoAberta, setFiliacaoSituacaoDesfiliadosSexoAberta] = useState('');
+  const [filiacaoSituacaoDesfiliadosSexoInconsistenciasLoading, setFiliacaoSituacaoDesfiliadosSexoInconsistenciasLoading] =
+    useState(true);
+  const [filiacaoSituacaoDesfiliadosSexoInconsistenciasError, setFiliacaoSituacaoDesfiliadosSexoInconsistenciasError] =
+    useState('');
+  const [filiacaoSituacaoDesfiliadosSexoInconsistencias, setFiliacaoSituacaoDesfiliadosSexoInconsistencias] =
+    useState<DashboardFiliacaoSituacaoDesfiliadosSexoInconsistenciaItem[]>([]);
+  const [filiacaoSituacaoDesfiliadosSexoInconsistenciaAberta, setFiliacaoSituacaoDesfiliadosSexoInconsistenciaAberta] =
+    useState('');
+  const [filiacaoSituacaoDesfiliadosRegiaoLoading, setFiliacaoSituacaoDesfiliadosRegiaoLoading] = useState(true);
+  const [filiacaoSituacaoDesfiliadosRegiaoError, setFiliacaoSituacaoDesfiliadosRegiaoError] = useState('');
+  const [filiacaoSituacaoDesfiliadosRegiao, setFiliacaoSituacaoDesfiliadosRegiao] = useState<
+    DashboardFiliacaoSituacaoDesfiliadosRegiaoDistribuicaoItem[]
+  >([]);
+  const [filiacaoSituacaoDesfiliadosRegiaoAberta, setFiliacaoSituacaoDesfiliadosRegiaoAberta] = useState('');
+  const [filiacaoSituacaoDesfiliadosRegiaoInconsistenciasLoading, setFiliacaoSituacaoDesfiliadosRegiaoInconsistenciasLoading] =
+    useState(true);
+  const [filiacaoSituacaoDesfiliadosRegiaoInconsistenciasError, setFiliacaoSituacaoDesfiliadosRegiaoInconsistenciasError] =
+    useState('');
+  const [filiacaoSituacaoDesfiliadosRegiaoInconsistencias, setFiliacaoSituacaoDesfiliadosRegiaoInconsistencias] =
+    useState<DashboardFiliacaoSituacaoDesfiliadosRegiaoInconsistenciaItem[]>([]);
+  const [filiacaoSituacaoDesfiliadosRegiaoInconsistenciaAberta, setFiliacaoSituacaoDesfiliadosRegiaoInconsistenciaAberta] =
+    useState('');
   const [selectedCard, setSelectedCard] = useState<DashboardCard | null>(null);
   const [searchInput, setSearchInput] = useState('');
   const [searchDebounced, setSearchDebounced] = useState('');
@@ -397,6 +512,75 @@ export function DashboardPage() {
   }, []);
 
   useEffect(() => {
+    async function loadFiliacaoSituacaoSexoInconsistencias() {
+      setFiliacaoSituacaoSexoInconsistenciasLoading(true);
+      setFiliacaoSituacaoSexoInconsistenciasError('');
+
+      try {
+        const response = await api.get<{ data: DashboardFiliacaoSituacaoSexoInconsistenciasResponse }>(
+          '/dashboard/filiacao-situacao-sexo-inconsistencias'
+        );
+        setFiliacaoSituacaoSexoInconsistencias(response.data.data.items ?? []);
+      } catch {
+        setFiliacaoSituacaoSexoInconsistencias([]);
+        setFiliacaoSituacaoSexoInconsistenciasError(
+          'Não foi possível carregar as inconsistências de sexo na situação funcional.'
+        );
+      } finally {
+        setFiliacaoSituacaoSexoInconsistenciasLoading(false);
+      }
+    }
+
+    void loadFiliacaoSituacaoSexoInconsistencias();
+  }, []);
+
+  useEffect(() => {
+    async function loadFiliacaoSituacaoRegiaoDistribuicao() {
+      setFiliacaoSituacaoRegiaoDistribuicaoLoading(true);
+      setFiliacaoSituacaoRegiaoDistribuicaoError('');
+
+      try {
+        const response = await api.get<{ data: DashboardFiliacaoSituacaoRegiaoDistribuicaoResponse }>(
+          '/dashboard/filiacao-situacao-regiao-distribuicao'
+        );
+        setFiliacaoSituacaoRegiaoDistribuicao(response.data.data.items ?? []);
+      } catch {
+        setFiliacaoSituacaoRegiaoDistribuicao([]);
+        setFiliacaoSituacaoRegiaoDistribuicaoError(
+          'Não foi possível carregar a distribuição por região na situação funcional.'
+        );
+      } finally {
+        setFiliacaoSituacaoRegiaoDistribuicaoLoading(false);
+      }
+    }
+
+    void loadFiliacaoSituacaoRegiaoDistribuicao();
+  }, []);
+
+  useEffect(() => {
+    async function loadFiliacaoSituacaoRegiaoInconsistencias() {
+      setFiliacaoSituacaoRegiaoInconsistenciasLoading(true);
+      setFiliacaoSituacaoRegiaoInconsistenciasError('');
+
+      try {
+        const response = await api.get<{ data: DashboardFiliacaoSituacaoRegiaoInconsistenciasResponse }>(
+          '/dashboard/filiacao-situacao-regiao-inconsistencias'
+        );
+        setFiliacaoSituacaoRegiaoInconsistencias(response.data.data.items ?? []);
+      } catch {
+        setFiliacaoSituacaoRegiaoInconsistencias([]);
+        setFiliacaoSituacaoRegiaoInconsistenciasError(
+          'Não foi possível carregar as inconsistências de região na situação funcional.'
+        );
+      } finally {
+        setFiliacaoSituacaoRegiaoInconsistenciasLoading(false);
+      }
+    }
+
+    void loadFiliacaoSituacaoRegiaoInconsistencias();
+  }, []);
+
+  useEffect(() => {
     async function loadFiliacaoSituacaoDesfiliados() {
       setFiliacaoSituacaoDesfiliadosLoading(true);
       setFiliacaoSituacaoDesfiliadosError('');
@@ -432,7 +616,7 @@ export function DashboardPage() {
       } catch {
         setFiliacaoSituacaoDesfiliadosSexo([]);
         setFiliacaoSituacaoDesfiliadosSexoError(
-          'NÃ£o foi possÃ­vel carregar a distribuiÃ§Ã£o por sexo na situaÃ§Ã£o de filiaÃ§Ãµes desfiliadas.'
+          'Não foi possível carregar a distribuição por sexo na situação de filiações desfiliadas.'
         );
       } finally {
         setFiliacaoSituacaoDesfiliadosSexoLoading(false);
@@ -440,6 +624,75 @@ export function DashboardPage() {
     }
 
     void loadFiliacaoSituacaoDesfiliadosSexo();
+  }, []);
+
+  useEffect(() => {
+    async function loadFiliacaoSituacaoDesfiliadosSexoInconsistencias() {
+      setFiliacaoSituacaoDesfiliadosSexoInconsistenciasLoading(true);
+      setFiliacaoSituacaoDesfiliadosSexoInconsistenciasError('');
+
+      try {
+        const response = await api.get<{ data: DashboardFiliacaoSituacaoDesfiliadosSexoInconsistenciasResponse }>(
+          '/dashboard/filiacao-situacao-desfiliados-sexo-inconsistencias'
+        );
+        setFiliacaoSituacaoDesfiliadosSexoInconsistencias(response.data.data.items ?? []);
+      } catch {
+        setFiliacaoSituacaoDesfiliadosSexoInconsistencias([]);
+        setFiliacaoSituacaoDesfiliadosSexoInconsistenciasError(
+          'Não foi possível carregar as inconsistências de sexo na situação dos desfiliados.'
+        );
+      } finally {
+        setFiliacaoSituacaoDesfiliadosSexoInconsistenciasLoading(false);
+      }
+    }
+
+    void loadFiliacaoSituacaoDesfiliadosSexoInconsistencias();
+  }, []);
+
+  useEffect(() => {
+    async function loadFiliacaoSituacaoDesfiliadosRegiao() {
+      setFiliacaoSituacaoDesfiliadosRegiaoLoading(true);
+      setFiliacaoSituacaoDesfiliadosRegiaoError('');
+
+      try {
+        const response = await api.get<{ data: DashboardFiliacaoSituacaoDesfiliadosRegiaoDistribuicaoResponse }>(
+          '/dashboard/filiacao-situacao-desfiliados-regiao-distribuicao'
+        );
+        setFiliacaoSituacaoDesfiliadosRegiao(response.data.data.items ?? []);
+      } catch {
+        setFiliacaoSituacaoDesfiliadosRegiao([]);
+        setFiliacaoSituacaoDesfiliadosRegiaoError(
+          'Não foi possível carregar a distribuição por região na situação dos desfiliados.'
+        );
+      } finally {
+        setFiliacaoSituacaoDesfiliadosRegiaoLoading(false);
+      }
+    }
+
+    void loadFiliacaoSituacaoDesfiliadosRegiao();
+  }, []);
+
+  useEffect(() => {
+    async function loadFiliacaoSituacaoDesfiliadosRegiaoInconsistencias() {
+      setFiliacaoSituacaoDesfiliadosRegiaoInconsistenciasLoading(true);
+      setFiliacaoSituacaoDesfiliadosRegiaoInconsistenciasError('');
+
+      try {
+        const response = await api.get<{ data: DashboardFiliacaoSituacaoDesfiliadosRegiaoInconsistenciasResponse }>(
+          '/dashboard/filiacao-situacao-desfiliados-regiao-inconsistencias'
+        );
+        setFiliacaoSituacaoDesfiliadosRegiaoInconsistencias(response.data.data.items ?? []);
+      } catch {
+        setFiliacaoSituacaoDesfiliadosRegiaoInconsistencias([]);
+        setFiliacaoSituacaoDesfiliadosRegiaoInconsistenciasError(
+          'Não foi possível carregar as inconsistências de região na situação dos desfiliados.'
+        );
+      } finally {
+        setFiliacaoSituacaoDesfiliadosRegiaoInconsistenciasLoading(false);
+      }
+    }
+
+    void loadFiliacaoSituacaoDesfiliadosRegiaoInconsistencias();
   }, []);
 
   useEffect(() => {
@@ -682,7 +935,7 @@ export function DashboardPage() {
   const filiacaoSituacaoSexoPorCodigo = useMemo(() => {
     return filiacaoSituacaoSexoDistribuicao.reduce<Record<string, DashboardFiliacaoSituacaoSexoDistribuicaoItem[]>>(
       (acc, item) => {
-        const key = item.situacaoCodigo;
+        const key = String(item.situacaoCodigo ?? '').trim();
         if (!acc[key]) {
           acc[key] = [];
         }
@@ -693,11 +946,51 @@ export function DashboardPage() {
     );
   }, [filiacaoSituacaoSexoDistribuicao]);
 
+  const filiacaoSituacaoSexoInconsistenciasPorCodigo = useMemo(() => {
+    return filiacaoSituacaoSexoInconsistencias.reduce<Record<string, DashboardFiliacaoSituacaoSexoInconsistenciaItem[]>>(
+      (acc, item) => {
+        const key = String(item.situacaoCodigo ?? '').trim();
+        if (!acc[key]) {
+          acc[key] = [];
+        }
+        acc[key].push(item);
+        return acc;
+      },
+      {}
+    );
+  }, [filiacaoSituacaoSexoInconsistencias]);
+
+  const filiacaoSituacaoRegiaoPorCodigo = useMemo(() => {
+    return filiacaoSituacaoRegiaoDistribuicao.reduce<
+      Record<string, DashboardFiliacaoSituacaoRegiaoDistribuicaoItem[]>
+    >((acc, item) => {
+      const key = String(item.situacaoCodigo ?? '').trim();
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+      acc[key].push(item);
+      return acc;
+    }, {});
+  }, [filiacaoSituacaoRegiaoDistribuicao]);
+
+  const filiacaoSituacaoRegiaoInconsistenciasPorCodigo = useMemo(() => {
+    return filiacaoSituacaoRegiaoInconsistencias.reduce<
+      Record<string, DashboardFiliacaoSituacaoRegiaoInconsistenciaItem[]>
+    >((acc, item) => {
+      const key = String(item.situacaoCodigo ?? '').trim();
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+      acc[key].push(item);
+      return acc;
+    }, {});
+  }, [filiacaoSituacaoRegiaoInconsistencias]);
+
   const filiacaoSituacaoDesfiliadosSexoPorCodigo = useMemo(() => {
     return filiacaoSituacaoDesfiliadosSexo.reduce<
       Record<string, DashboardFiliacaoSituacaoDesfiliadosSexoDistribuicaoItem[]>
     >((acc, item) => {
-      const key = item.situacaoCodigo;
+      const key = String(item.situacaoCodigo ?? '').trim();
       if (!acc[key]) {
         acc[key] = [];
       }
@@ -706,12 +999,75 @@ export function DashboardPage() {
     }, {});
   }, [filiacaoSituacaoDesfiliadosSexo]);
 
+  const filiacaoSituacaoDesfiliadosSexoInconsistenciasPorCodigo = useMemo(() => {
+    return filiacaoSituacaoDesfiliadosSexoInconsistencias.reduce<
+      Record<string, DashboardFiliacaoSituacaoDesfiliadosSexoInconsistenciaItem[]>
+    >((acc, item) => {
+      const key = String(item.situacaoCodigo ?? '').trim();
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+      acc[key].push(item);
+      return acc;
+    }, {});
+  }, [filiacaoSituacaoDesfiliadosSexoInconsistencias]);
+
+  const filiacaoSituacaoDesfiliadosRegiaoPorCodigo = useMemo(() => {
+    return filiacaoSituacaoDesfiliadosRegiao.reduce<
+      Record<string, DashboardFiliacaoSituacaoDesfiliadosRegiaoDistribuicaoItem[]>
+    >((acc, item) => {
+      const key = String(item.situacaoCodigo ?? '').trim();
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+      acc[key].push(item);
+      return acc;
+    }, {});
+  }, [filiacaoSituacaoDesfiliadosRegiao]);
+
+  const filiacaoSituacaoDesfiliadosRegiaoInconsistenciasPorCodigo = useMemo(() => {
+    return filiacaoSituacaoDesfiliadosRegiaoInconsistencias.reduce<
+      Record<string, DashboardFiliacaoSituacaoDesfiliadosRegiaoInconsistenciaItem[]>
+    >((acc, item) => {
+      const key = String(item.situacaoCodigo ?? '').trim();
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+      acc[key].push(item);
+      return acc;
+    }, {});
+  }, [filiacaoSituacaoDesfiliadosRegiaoInconsistencias]);
+
   function toggleDetalheSexoSituacao(codigo: string) {
     setFiliacaoSituacaoSexoAberta((current) => (current === codigo ? '' : codigo));
   }
 
+  function toggleInconsistenciaSexoSituacao(codigo: string) {
+    setFiliacaoSituacaoSexoInconsistenciaAberta((current) => (current === codigo ? '' : codigo));
+  }
+
+  function toggleDetalheRegiaoSituacao(codigo: string) {
+    setFiliacaoSituacaoRegiaoAberta((current) => (current === codigo ? '' : codigo));
+  }
+
+  function toggleInconsistenciaRegiaoSituacao(codigo: string) {
+    setFiliacaoSituacaoRegiaoInconsistenciaAberta((current) => (current === codigo ? '' : codigo));
+  }
+
   function toggleDetalheSexoSituacaoDesfiliados(codigo: string) {
     setFiliacaoSituacaoDesfiliadosSexoAberta((current) => (current === codigo ? '' : codigo));
+  }
+
+  function toggleInconsistenciaSexoSituacaoDesfiliados(codigo: string) {
+    setFiliacaoSituacaoDesfiliadosSexoInconsistenciaAberta((current) => (current === codigo ? '' : codigo));
+  }
+
+  function toggleDetalheRegiaoSituacaoDesfiliados(codigo: string) {
+    setFiliacaoSituacaoDesfiliadosRegiaoAberta((current) => (current === codigo ? '' : codigo));
+  }
+
+  function toggleInconsistenciaRegiaoSituacaoDesfiliados(codigo: string) {
+    setFiliacaoSituacaoDesfiliadosRegiaoInconsistenciaAberta((current) => (current === codigo ? '' : codigo));
   }
 
   return (
@@ -893,7 +1249,7 @@ export function DashboardPage() {
             <div>
               <h3 className="text-sm font-semibold text-slate-900">Situação Funcional da Filiação</h3>
               <p className="text-xs text-slate-500">
-                Quantidade e percentual por situação da filiação, considerando apenas situações ativas no cadastro.
+                Quantidade e percentual por situação da filiação, considerando apenas ASSOCIADOS ativos no cadastro.
               </p>
             </div>
             <button
@@ -944,9 +1300,20 @@ export function DashboardPage() {
                       </tr>
                     ) : (
                       filiacaoSituacaoDistribuicao.map((item) => {
+                        const situacaoCodigo = String(item.codigo ?? '').trim();
                         const situacaoStyle = getFiliacaoSituacaoColorStyle(item);
-                        const situacaoEstaAberta = filiacaoSituacaoSexoAberta === item.codigo;
-                        const sexoDaSituacao = filiacaoSituacaoSexoPorCodigo[item.codigo] ?? [];
+                        const situacaoSexoEstaAberta = filiacaoSituacaoSexoAberta === situacaoCodigo;
+                        const situacaoRegiaoEstaAberta = filiacaoSituacaoRegiaoAberta === situacaoCodigo;
+                        const sexoDaSituacao = filiacaoSituacaoSexoPorCodigo[situacaoCodigo] ?? [];
+                        const inconsistenciasSexoDaSituacao =
+                          filiacaoSituacaoSexoInconsistenciasPorCodigo[situacaoCodigo] ?? [];
+                        const regiaoDaSituacao = filiacaoSituacaoRegiaoPorCodigo[situacaoCodigo] ?? [];
+                        const inconsistenciasDaSituacao =
+                          filiacaoSituacaoRegiaoInconsistenciasPorCodigo[situacaoCodigo] ?? [];
+                        const situacaoInconsistenciaEstaAberta =
+                          filiacaoSituacaoRegiaoInconsistenciaAberta === situacaoCodigo;
+                        const situacaoSexoInconsistenciaEstaAberta =
+                          filiacaoSituacaoSexoInconsistenciaAberta === situacaoCodigo;
                         return (
                           <Fragment key={`${item.codigo}-${item.descricao}`}>
                             <tr className={situacaoStyle.rowClassName}>
@@ -970,63 +1337,237 @@ export function DashboardPage() {
                                 )
                               </td>
                               <td className="px-4 py-3 text-right text-sm text-slate-700">
-                                <button
-                                  type="button"
-                                  className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-800"
-                                  aria-expanded={situacaoEstaAberta}
-                                  aria-label={`Ver distribuição por sexo da situação ${item.descricao || item.codigo}`}
-                                  onClick={() => toggleDetalheSexoSituacao(item.codigo)}
-                                >
-                                  {situacaoEstaAberta ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                                  {situacaoEstaAberta ? 'Ocultar' : 'Ver sexo'}
-                                </button>
+                                <div className="inline-flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-800"
+                                    aria-expanded={situacaoRegiaoEstaAberta}
+                                    aria-label={`Ver distribuição por região da situação ${item.descricao || item.codigo}`}
+                                    onClick={() => toggleDetalheRegiaoSituacao(situacaoCodigo)}
+                                  >
+                                    {situacaoRegiaoEstaAberta ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                                    {situacaoRegiaoEstaAberta ? 'Ocultar' : 'Ver região'}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-800"
+                                    aria-expanded={situacaoSexoEstaAberta}
+                                    aria-label={`Ver distribuição por sexo da situação ${item.descricao || item.codigo}`}
+                                    onClick={() => toggleDetalheSexoSituacao(situacaoCodigo)}
+                                  >
+                                    {situacaoSexoEstaAberta ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                                    {situacaoSexoEstaAberta ? 'Ocultar' : 'Ver sexo'}
+                                  </button>
+                                </div>
                               </td>
                             </tr>
-                            {situacaoEstaAberta ? (
+                            {situacaoSexoEstaAberta || situacaoRegiaoEstaAberta ? (
                               <tr>
                                 <td colSpan={3} className="bg-slate-50/50 px-4 py-3">
-                                  {filiacaoSituacaoSexoDistribuicaoError ? (
-                                    <div className="alert-error">{filiacaoSituacaoSexoDistribuicaoError}</div>
-                                  ) : filiacaoSituacaoSexoDistribuicaoLoading ? (
-                                    <p className="text-sm text-slate-500">Carregando distribuição por sexo...</p>
-                                  ) : sexoDaSituacao.length === 0 ? (
-                                    <p className="text-sm text-slate-500">
-                                      Nenhum dado de distribuição por sexo encontrado para esta situação.
-                                    </p>
-                                  ) : (
-                                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
-                                      {sexoDaSituacao.map((sexoItem) => {
-                                        const generoStyle = getGeneroColorStyle(
-                                          sexoItem.generoDescricao,
-                                          sexoItem.genero
-                                        );
-                                        return (
-                                          <div
-                                            key={`${sexoItem.situacaoCodigo}-${sexoItem.genero}`}
-                                            className="rounded-lg border border-slate-200 bg-white p-3"
-                                          >
-                                            <span
-                                              className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${generoStyle.chipClassName}`}
+                                  <div className="space-y-3">
+                                    {situacaoRegiaoEstaAberta ? (
+                                      <div>
+                                        <div className="mb-2 flex items-center justify-between gap-2">
+                                          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                            Distribuição por Região
+                                          </p>
+                                          {inconsistenciasDaSituacao.length > 0 ? (
+                                            <button
+                                              type="button"
+                                              className="inline-flex items-center gap-1 rounded-md border border-amber-300 bg-amber-50 px-2.5 py-1.5 text-xs font-semibold text-amber-700 transition hover:bg-amber-100"
+                                              aria-expanded={situacaoInconsistenciaEstaAberta}
+                                              onClick={() => toggleInconsistenciaRegiaoSituacao(situacaoCodigo)}
                                             >
-                                              {sexoItem.generoDescricao || sexoItem.genero || 'Não informado'}
-                                            </span>
-                                            <p className="mt-2 text-sm font-medium text-slate-700">
-                                              <AnimatedInlineCount
-                                                value={sexoItem.totalQtd}
-                                                loading={filiacaoSituacaoSexoDistribuicaoLoading}
-                                              />{' '}
-                                              (
-                                              <AnimatedInlinePercent
-                                                value={sexoItem.totalPercentual}
-                                                loading={filiacaoSituacaoSexoDistribuicaoLoading}
-                                              />
-                                              )
-                                            </p>
+                                              {situacaoInconsistenciaEstaAberta ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                                              {situacaoInconsistenciaEstaAberta
+                                                ? 'Ocultar inconsistências'
+                                                : `Inconsistências (${inconsistenciasDaSituacao.length})`}
+                                            </button>
+                                          ) : null}
+                                        </div>
+                                        {filiacaoSituacaoRegiaoDistribuicaoError ? (
+                                          <div className="alert-error">{filiacaoSituacaoRegiaoDistribuicaoError}</div>
+                                        ) : filiacaoSituacaoRegiaoDistribuicaoLoading ? (
+                                          <p className="text-sm text-slate-500">Carregando distribuição por região...</p>
+                                        ) : regiaoDaSituacao.length === 0 ? (
+                                          <p className="text-sm text-slate-500">
+                                            Nenhum dado de distribuição por região encontrado para esta situação.
+                                          </p>
+                                        ) : (
+                                          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                                            {regiaoDaSituacao.map((regiaoItem) => (
+                                              <div
+                                                key={`${regiaoItem.situacaoCodigo}-${regiaoItem.regiaoCodigo}`}
+                                                className="rounded-lg border border-slate-200 bg-white p-3"
+                                              >
+                                                <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                                                  {regiaoItem.regiaoDescricao || regiaoItem.regiaoCodigo || 'Não informado'}
+                                                </span>
+                                                <p className="mt-2 text-sm font-medium text-slate-700">
+                                                  <AnimatedInlineCount
+                                                    value={regiaoItem.totalQtd}
+                                                    loading={filiacaoSituacaoRegiaoDistribuicaoLoading}
+                                                  />{' '}
+                                                  (
+                                                  <AnimatedInlinePercent
+                                                    value={regiaoItem.totalPercentual}
+                                                    loading={filiacaoSituacaoRegiaoDistribuicaoLoading}
+                                                  />
+                                                  )
+                                                </p>
+                                              </div>
+                                            ))}
                                           </div>
-                                        );
-                                      })}
-                                    </div>
-                                  )}
+                                        )}
+                                        {situacaoInconsistenciaEstaAberta ? (
+                                          <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50/40 p-3">
+                                            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-700">
+                                              Filiações sem região válida para mapeamento
+                                            </p>
+                                            {filiacaoSituacaoRegiaoInconsistenciasError ? (
+                                              <div className="alert-error">{filiacaoSituacaoRegiaoInconsistenciasError}</div>
+                                            ) : filiacaoSituacaoRegiaoInconsistenciasLoading ? (
+                                              <p className="text-sm text-slate-600">Carregando inconsistências...</p>
+                                            ) : (
+                                              <div className="max-h-64 overflow-auto rounded-lg border border-amber-200 bg-white">
+                                                <table className="min-w-full divide-y divide-amber-100">
+                                                  <thead className="bg-amber-50">
+                                                    <tr>
+                                                      <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-amber-800">
+                                                        CPF
+                                                      </th>
+                                                      <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-amber-800">
+                                                        Nome
+                                                      </th>
+                                                      <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-amber-800">
+                                                        Motivo
+                                                      </th>
+                                                    </tr>
+                                                  </thead>
+                                                  <tbody className="divide-y divide-amber-100">
+                                                    {inconsistenciasDaSituacao.map((inc, idx) => (
+                                                      <tr key={`${inc.situacaoCodigo}-${inc.cpf}-${idx}`} className="hover:bg-amber-50/60">
+                                                        <td className="px-3 py-2 text-sm text-slate-700">{inc.cpf || '-'}</td>
+                                                        <td className="px-3 py-2 text-sm text-slate-700">{inc.nome || 'Sem nome'}</td>
+                                                        <td className="px-3 py-2 text-sm text-slate-700">{inc.motivo || 'Não informado'}</td>
+                                                      </tr>
+                                                    ))}
+                                                  </tbody>
+                                                </table>
+                                              </div>
+                                            )}
+                                          </div>
+                                        ) : null}
+                                      </div>
+                                    ) : null}
+
+                                    {situacaoSexoEstaAberta ? (
+                                      <div>
+                                        <div className="mb-2 flex items-center justify-between gap-2">
+                                          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                            Distribuição por Sexo
+                                          </p>
+                                          {inconsistenciasSexoDaSituacao.length > 0 ? (
+                                            <button
+                                              type="button"
+                                              className="inline-flex items-center gap-1 rounded-md border border-amber-300 bg-amber-50 px-2.5 py-1.5 text-xs font-semibold text-amber-700 transition hover:bg-amber-100"
+                                              aria-expanded={situacaoSexoInconsistenciaEstaAberta}
+                                              onClick={() => toggleInconsistenciaSexoSituacao(situacaoCodigo)}
+                                            >
+                                              {situacaoSexoInconsistenciaEstaAberta ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                                              {situacaoSexoInconsistenciaEstaAberta
+                                                ? 'Ocultar inconsistências'
+                                                : `Inconsistências (${inconsistenciasSexoDaSituacao.length})`}
+                                            </button>
+                                          ) : null}
+                                        </div>
+                                        {filiacaoSituacaoSexoDistribuicaoError ? (
+                                          <div className="alert-error">{filiacaoSituacaoSexoDistribuicaoError}</div>
+                                        ) : filiacaoSituacaoSexoDistribuicaoLoading ? (
+                                          <p className="text-sm text-slate-500">Carregando distribuição por sexo...</p>
+                                        ) : sexoDaSituacao.length === 0 ? (
+                                          <p className="text-sm text-slate-500">
+                                            Nenhum dado de distribuição por sexo encontrado para esta situação.
+                                          </p>
+                                        ) : (
+                                          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                                            {sexoDaSituacao.map((sexoItem) => {
+                                              const generoStyle = getGeneroColorStyle(
+                                                sexoItem.generoDescricao,
+                                                sexoItem.genero
+                                              );
+                                              return (
+                                                <div
+                                                  key={`${sexoItem.situacaoCodigo}-${sexoItem.genero}`}
+                                                  className="rounded-lg border border-slate-200 bg-white p-3"
+                                                >
+                                                  <span
+                                                    className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${generoStyle.chipClassName}`}
+                                                  >
+                                                    {sexoItem.generoDescricao || sexoItem.genero || 'Não informado'}
+                                                  </span>
+                                                  <p className="mt-2 text-sm font-medium text-slate-700">
+                                                    <AnimatedInlineCount
+                                                      value={sexoItem.totalQtd}
+                                                      loading={filiacaoSituacaoSexoDistribuicaoLoading}
+                                                    />{' '}
+                                                    (
+                                                    <AnimatedInlinePercent
+                                                      value={sexoItem.totalPercentual}
+                                                      loading={filiacaoSituacaoSexoDistribuicaoLoading}
+                                                    />
+                                                    )
+                                                  </p>
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
+                                        )}
+                                        {situacaoSexoInconsistenciaEstaAberta ? (
+                                          <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50/40 p-3">
+                                            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-700">
+                                              Filiações com inconsistências de sexo
+                                            </p>
+                                            {filiacaoSituacaoSexoInconsistenciasError ? (
+                                              <div className="alert-error">{filiacaoSituacaoSexoInconsistenciasError}</div>
+                                            ) : filiacaoSituacaoSexoInconsistenciasLoading ? (
+                                              <p className="text-sm text-slate-600">Carregando inconsistências...</p>
+                                            ) : (
+                                              <div className="max-h-64 overflow-auto rounded-lg border border-amber-200 bg-white">
+                                                <table className="min-w-full divide-y divide-amber-100">
+                                                  <thead className="bg-amber-50">
+                                                    <tr>
+                                                      <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-amber-800">
+                                                        CPF
+                                                      </th>
+                                                      <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-amber-800">
+                                                        Nome
+                                                      </th>
+                                                      <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-amber-800">
+                                                        Motivo
+                                                      </th>
+                                                    </tr>
+                                                  </thead>
+                                                  <tbody className="divide-y divide-amber-100">
+                                                    {inconsistenciasSexoDaSituacao.map((inc, idx) => (
+                                                      <tr
+                                                        key={`${inc.situacaoCodigo}-${inc.cpf}-${idx}`}
+                                                        className="hover:bg-amber-50/60"
+                                                      >
+                                                        <td className="px-3 py-2 text-sm text-slate-700">{inc.cpf || '-'}</td>
+                                                        <td className="px-3 py-2 text-sm text-slate-700">{inc.nome || 'Sem nome'}</td>
+                                                        <td className="px-3 py-2 text-sm text-slate-700">{inc.motivo || 'Não informado'}</td>
+                                                      </tr>
+                                                    ))}
+                                                  </tbody>
+                                                </table>
+                                              </div>
+                                            )}
+                                          </div>
+                                        ) : null}
+                                      </div>
+                                    ) : null}
+                                  </div>
                                 </td>
                               </tr>
                             ) : null}
@@ -1097,95 +1638,280 @@ export function DashboardPage() {
                       </tr>
                     ) : (
                       filiacaoSituacaoDesfiliados.map((item) => {
+                        const situacaoCodigo = String(item.codigo ?? '').trim();
                         const situacaoStyle = getFiliacaoSituacaoColorStyle({
                           codigo: item.codigo,
                           descricao: item.descricao,
                           totalFiliacoesQtd: 0,
                           totalFiliacoesPercentual: 0
                         });
-                        const situacaoEstaAberta = filiacaoSituacaoDesfiliadosSexoAberta === item.codigo;
-                        const sexoDaSituacao = filiacaoSituacaoDesfiliadosSexoPorCodigo[item.codigo] ?? [];
+                        const situacaoSexoEstaAberta = filiacaoSituacaoDesfiliadosSexoAberta === situacaoCodigo;
+                        const situacaoRegiaoEstaAberta = filiacaoSituacaoDesfiliadosRegiaoAberta === situacaoCodigo;
+                        const situacaoInconsistenciaEstaAberta =
+                          filiacaoSituacaoDesfiliadosRegiaoInconsistenciaAberta === situacaoCodigo;
+                        const sexoDaSituacao = filiacaoSituacaoDesfiliadosSexoPorCodigo[situacaoCodigo] ?? [];
+                        const inconsistenciasSexoDaSituacao =
+                          filiacaoSituacaoDesfiliadosSexoInconsistenciasPorCodigo[situacaoCodigo] ?? [];
+                        const regiaoDaSituacao = filiacaoSituacaoDesfiliadosRegiaoPorCodigo[situacaoCodigo] ?? [];
+                        const inconsistenciasDaSituacao =
+                          filiacaoSituacaoDesfiliadosRegiaoInconsistenciasPorCodigo[situacaoCodigo] ?? [];
+                        const situacaoSexoInconsistenciaEstaAberta =
+                          filiacaoSituacaoDesfiliadosSexoInconsistenciaAberta === situacaoCodigo;
 
                         return (
                           <Fragment key={`${item.codigo}-${item.descricao}`}>
                             <tr className={situacaoStyle.rowClassName}>
-                            <td className="px-4 py-3 text-sm text-slate-700">
-                              <span
-                                className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${situacaoStyle.chipClassName}`}
-                              >
-                                {item.descricao || item.codigo || 'Não informado'}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3 text-sm text-slate-700">
-                              <AnimatedInlineCount
-                                value={item.totalDesfiliadosQtd}
-                                loading={filiacaoSituacaoDesfiliadosLoading}
-                              />{' '}
-                              (
-                              <AnimatedInlinePercent
-                                value={item.totalDesfiliadosPercentual}
-                                loading={filiacaoSituacaoDesfiliadosLoading}
-                              />
-                              )
-                            </td>
-                              <td className="px-4 py-3 text-right text-sm text-slate-700">
-                                <button
-                                  type="button"
-                                  className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-800"
-                                  aria-expanded={situacaoEstaAberta}
-                                  aria-label={`Ver distribuiÃ§Ã£o por sexo da situaÃ§Ã£o ${item.descricao || item.codigo}`}
-                                  onClick={() => toggleDetalheSexoSituacaoDesfiliados(item.codigo)}
+                              <td className="px-4 py-3 text-sm text-slate-700">
+                                <span
+                                  className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${situacaoStyle.chipClassName}`}
                                 >
-                                  {situacaoEstaAberta ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                                  {situacaoEstaAberta ? 'Ocultar' : 'Ver sexo'}
-                                </button>
+                                  {item.descricao || item.codigo || 'Não informado'}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-sm text-slate-700">
+                                <AnimatedInlineCount
+                                  value={item.totalDesfiliadosQtd}
+                                  loading={filiacaoSituacaoDesfiliadosLoading}
+                                />{' '}
+                                (
+                                <AnimatedInlinePercent
+                                  value={item.totalDesfiliadosPercentual}
+                                  loading={filiacaoSituacaoDesfiliadosLoading}
+                                />
+                                )
+                              </td>
+                              <td className="px-4 py-3 text-right text-sm text-slate-700">
+                                <div className="inline-flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-800"
+                                    aria-expanded={situacaoRegiaoEstaAberta}
+                                    aria-label={`Ver distribuição por região da situação ${item.descricao || item.codigo}`}
+                                    onClick={() => toggleDetalheRegiaoSituacaoDesfiliados(situacaoCodigo)}
+                                  >
+                                    {situacaoRegiaoEstaAberta ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                                    {situacaoRegiaoEstaAberta ? 'Ocultar' : 'Ver região'}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-800"
+                                    aria-expanded={situacaoSexoEstaAberta}
+                                    aria-label={`Ver distribuição por sexo da situação ${item.descricao || item.codigo}`}
+                                    onClick={() => toggleDetalheSexoSituacaoDesfiliados(situacaoCodigo)}
+                                  >
+                                    {situacaoSexoEstaAberta ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                                    {situacaoSexoEstaAberta ? 'Ocultar' : 'Ver sexo'}
+                                  </button>
+                                </div>
                               </td>
                             </tr>
-                            {situacaoEstaAberta ? (
+                            {situacaoSexoEstaAberta || situacaoRegiaoEstaAberta ? (
                               <tr>
                                 <td colSpan={3} className="bg-slate-50/50 px-4 py-3">
-                                  {filiacaoSituacaoDesfiliadosSexoError ? (
-                                    <div className="alert-error">{filiacaoSituacaoDesfiliadosSexoError}</div>
-                                  ) : filiacaoSituacaoDesfiliadosSexoLoading ? (
-                                    <p className="text-sm text-slate-500">Carregando distribuiÃ§Ã£o por sexo...</p>
-                                  ) : sexoDaSituacao.length === 0 ? (
-                                    <p className="text-sm text-slate-500">
-                                      Nenhum dado de distribuiÃ§Ã£o por sexo encontrado para esta situaÃ§Ã£o.
-                                    </p>
-                                  ) : (
-                                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
-                                      {sexoDaSituacao.map((sexoItem) => {
-                                        const generoStyle = getGeneroColorStyle(
-                                          sexoItem.generoDescricao,
-                                          sexoItem.genero
-                                        );
-                                        return (
-                                          <div
-                                            key={`${sexoItem.situacaoCodigo}-${sexoItem.genero}`}
-                                            className="rounded-lg border border-slate-200 bg-white p-3"
-                                          >
-                                            <span
-                                              className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${generoStyle.chipClassName}`}
+                                  <div className="space-y-3">
+                                    {situacaoRegiaoEstaAberta ? (
+                                      <div>
+                                        <div className="mb-2 flex items-center justify-between gap-2">
+                                          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                            Distribuição por Região
+                                          </p>
+                                          {inconsistenciasDaSituacao.length > 0 ? (
+                                            <button
+                                              type="button"
+                                              className="inline-flex items-center gap-1 rounded-md border border-amber-300 bg-amber-50 px-2.5 py-1.5 text-xs font-semibold text-amber-700 transition hover:bg-amber-100"
+                                              aria-expanded={situacaoInconsistenciaEstaAberta}
+                                              onClick={() => toggleInconsistenciaRegiaoSituacaoDesfiliados(situacaoCodigo)}
                                             >
-                                              {sexoItem.generoDescricao || sexoItem.genero || 'NÃ£o informado'}
-                                            </span>
-                                            <p className="mt-2 text-sm font-medium text-slate-700">
-                                              <AnimatedInlineCount
-                                                value={sexoItem.totalQtd}
-                                                loading={filiacaoSituacaoDesfiliadosSexoLoading}
-                                              />{' '}
-                                              (
-                                              <AnimatedInlinePercent
-                                                value={sexoItem.totalPercentual}
-                                                loading={filiacaoSituacaoDesfiliadosSexoLoading}
-                                              />
-                                              )
-                                            </p>
+                                              {situacaoInconsistenciaEstaAberta ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                                              {situacaoInconsistenciaEstaAberta
+                                                ? 'Ocultar inconsistências'
+                                                : `Inconsistências (${inconsistenciasDaSituacao.length})`}
+                                            </button>
+                                          ) : null}
+                                        </div>
+                                        {filiacaoSituacaoDesfiliadosRegiaoError ? (
+                                          <div className="alert-error">{filiacaoSituacaoDesfiliadosRegiaoError}</div>
+                                        ) : filiacaoSituacaoDesfiliadosRegiaoLoading ? (
+                                          <p className="text-sm text-slate-500">Carregando distribuição por região...</p>
+                                        ) : regiaoDaSituacao.length === 0 ? (
+                                          <p className="text-sm text-slate-500">
+                                            Nenhum dado de distribuição por região encontrado para esta situação.
+                                          </p>
+                                        ) : (
+                                          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                                            {regiaoDaSituacao.map((regiaoItem) => (
+                                              <div
+                                                key={`${regiaoItem.situacaoCodigo}-${regiaoItem.regiaoCodigo}`}
+                                                className="rounded-lg border border-slate-200 bg-white p-3"
+                                              >
+                                                <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                                                  {regiaoItem.regiaoDescricao || regiaoItem.regiaoCodigo || 'Não informado'}
+                                                </span>
+                                                <p className="mt-2 text-sm font-medium text-slate-700">
+                                                  <AnimatedInlineCount
+                                                    value={regiaoItem.totalQtd}
+                                                    loading={filiacaoSituacaoDesfiliadosRegiaoLoading}
+                                                  />{' '}
+                                                  (
+                                                  <AnimatedInlinePercent
+                                                    value={regiaoItem.totalPercentual}
+                                                    loading={filiacaoSituacaoDesfiliadosRegiaoLoading}
+                                                  />
+                                                  )
+                                                </p>
+                                              </div>
+                                            ))}
                                           </div>
-                                        );
-                                      })}
-                                    </div>
-                                  )}
+                                        )}
+                                        {situacaoInconsistenciaEstaAberta ? (
+                                          <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50/40 p-3">
+                                            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-700">
+                                              Filiações sem região válida para mapeamento
+                                            </p>
+                                            {filiacaoSituacaoDesfiliadosRegiaoInconsistenciasError ? (
+                                              <div className="alert-error">{filiacaoSituacaoDesfiliadosRegiaoInconsistenciasError}</div>
+                                            ) : filiacaoSituacaoDesfiliadosRegiaoInconsistenciasLoading ? (
+                                              <p className="text-sm text-slate-600">Carregando inconsistências...</p>
+                                            ) : (
+                                              <div className="max-h-64 overflow-auto rounded-lg border border-amber-200 bg-white">
+                                                <table className="min-w-full divide-y divide-amber-100">
+                                                  <thead className="bg-amber-50">
+                                                    <tr>
+                                                      <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-amber-800">
+                                                        CPF
+                                                      </th>
+                                                      <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-amber-800">
+                                                        Nome
+                                                      </th>
+                                                      <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-amber-800">
+                                                        Motivo
+                                                      </th>
+                                                    </tr>
+                                                  </thead>
+                                                  <tbody className="divide-y divide-amber-100">
+                                                    {inconsistenciasDaSituacao.map((inc, idx) => (
+                                                      <tr key={`${inc.situacaoCodigo}-${inc.cpf}-${idx}`} className="hover:bg-amber-50/60">
+                                                        <td className="px-3 py-2 text-sm text-slate-700">{inc.cpf || '-'}</td>
+                                                        <td className="px-3 py-2 text-sm text-slate-700">{inc.nome || 'Sem nome'}</td>
+                                                        <td className="px-3 py-2 text-sm text-slate-700">{inc.motivo || 'Não informado'}</td>
+                                                      </tr>
+                                                    ))}
+                                                  </tbody>
+                                                </table>
+                                              </div>
+                                            )}
+                                          </div>
+                                        ) : null}
+                                      </div>
+                                    ) : null}
+
+                                    {situacaoSexoEstaAberta ? (
+                                      <div>
+                                        <div className="mb-2 flex items-center justify-between gap-2">
+                                          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                            Distribuição por Sexo
+                                          </p>
+                                          {inconsistenciasSexoDaSituacao.length > 0 ? (
+                                            <button
+                                              type="button"
+                                              className="inline-flex items-center gap-1 rounded-md border border-amber-300 bg-amber-50 px-2.5 py-1.5 text-xs font-semibold text-amber-700 transition hover:bg-amber-100"
+                                              aria-expanded={situacaoSexoInconsistenciaEstaAberta}
+                                              onClick={() => toggleInconsistenciaSexoSituacaoDesfiliados(situacaoCodigo)}
+                                            >
+                                              {situacaoSexoInconsistenciaEstaAberta ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                                              {situacaoSexoInconsistenciaEstaAberta
+                                                ? 'Ocultar inconsistências'
+                                                : `Inconsistências (${inconsistenciasSexoDaSituacao.length})`}
+                                            </button>
+                                          ) : null}
+                                        </div>
+                                        {filiacaoSituacaoDesfiliadosSexoError ? (
+                                          <div className="alert-error">{filiacaoSituacaoDesfiliadosSexoError}</div>
+                                        ) : filiacaoSituacaoDesfiliadosSexoLoading ? (
+                                          <p className="text-sm text-slate-500">Carregando distribuição por sexo...</p>
+                                        ) : sexoDaSituacao.length === 0 ? (
+                                          <p className="text-sm text-slate-500">
+                                            Nenhum dado de distribuição por sexo encontrado para esta situação.
+                                          </p>
+                                        ) : (
+                                          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                                            {sexoDaSituacao.map((sexoItem) => {
+                                              const generoStyle = getGeneroColorStyle(
+                                                sexoItem.generoDescricao,
+                                                sexoItem.genero
+                                              );
+                                              return (
+                                                <div
+                                                  key={`${sexoItem.situacaoCodigo}-${sexoItem.genero}`}
+                                                  className="rounded-lg border border-slate-200 bg-white p-3"
+                                                >
+                                                  <span
+                                                    className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${generoStyle.chipClassName}`}
+                                                  >
+                                                    {sexoItem.generoDescricao || sexoItem.genero || 'Não informado'}
+                                                  </span>
+                                                  <p className="mt-2 text-sm font-medium text-slate-700">
+                                                    <AnimatedInlineCount
+                                                      value={sexoItem.totalQtd}
+                                                      loading={filiacaoSituacaoDesfiliadosSexoLoading}
+                                                    />{' '}
+                                                    (
+                                                    <AnimatedInlinePercent
+                                                      value={sexoItem.totalPercentual}
+                                                      loading={filiacaoSituacaoDesfiliadosSexoLoading}
+                                                    />
+                                                    )
+                                                  </p>
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
+                                        )}
+                                        {situacaoSexoInconsistenciaEstaAberta ? (
+                                          <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50/40 p-3">
+                                            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-700">
+                                              Filiações com inconsistências de sexo
+                                            </p>
+                                            {filiacaoSituacaoDesfiliadosSexoInconsistenciasError ? (
+                                              <div className="alert-error">{filiacaoSituacaoDesfiliadosSexoInconsistenciasError}</div>
+                                            ) : filiacaoSituacaoDesfiliadosSexoInconsistenciasLoading ? (
+                                              <p className="text-sm text-slate-600">Carregando inconsistências...</p>
+                                            ) : (
+                                              <div className="max-h-64 overflow-auto rounded-lg border border-amber-200 bg-white">
+                                                <table className="min-w-full divide-y divide-amber-100">
+                                                  <thead className="bg-amber-50">
+                                                    <tr>
+                                                      <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-amber-800">
+                                                        CPF
+                                                      </th>
+                                                      <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-amber-800">
+                                                        Nome
+                                                      </th>
+                                                      <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-amber-800">
+                                                        Motivo
+                                                      </th>
+                                                    </tr>
+                                                  </thead>
+                                                  <tbody className="divide-y divide-amber-100">
+                                                    {inconsistenciasSexoDaSituacao.map((inc, idx) => (
+                                                      <tr
+                                                        key={`${inc.situacaoCodigo}-${inc.cpf}-${idx}`}
+                                                        className="hover:bg-amber-50/60"
+                                                      >
+                                                        <td className="px-3 py-2 text-sm text-slate-700">{inc.cpf || '-'}</td>
+                                                        <td className="px-3 py-2 text-sm text-slate-700">{inc.nome || 'Sem nome'}</td>
+                                                        <td className="px-3 py-2 text-sm text-slate-700">{inc.motivo || 'Não informado'}</td>
+                                                      </tr>
+                                                    ))}
+                                                  </tbody>
+                                                </table>
+                                              </div>
+                                            )}
+                                          </div>
+                                        ) : null}
+                                      </div>
+                                    ) : null}
+                                  </div>
                                 </td>
                               </tr>
                             ) : null}

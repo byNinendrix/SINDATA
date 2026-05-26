@@ -1,4 +1,4 @@
-import type { FastifyReply, FastifyRequest } from 'fastify';
+﻿import type { FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import { errorResponse, successResponse } from '../../shared/utils/response';
 import { DashboardService, type DashboardDetalheCardKey } from './dashboard.service';
@@ -51,6 +51,41 @@ export async function dashboardFiliacaoSituacaoSexoDistribuicaoController(
   return successResponse(reply, distribuicao, 'Distribuição por sexo na situação funcional carregada com sucesso.');
 }
 
+export async function dashboardFiliacaoSituacaoSexoInconsistenciasController(
+  _request: FastifyRequest,
+  reply: FastifyReply
+) {
+  const inconsistencias = await dashboardService.getFiliacaoSituacaoSexoInconsistencias();
+
+  return successResponse(
+    reply,
+    inconsistencias,
+    'Inconsistências de sexo na situação funcional carregadas com sucesso.'
+  );
+}
+
+export async function dashboardFiliacaoSituacaoRegiaoDistribuicaoController(
+  _request: FastifyRequest,
+  reply: FastifyReply
+) {
+  const distribuicao = await dashboardService.getFiliacaoSituacaoRegiaoDistribuicao();
+
+  return successResponse(reply, distribuicao, 'Distribuição por região na situação funcional carregada com sucesso.');
+}
+
+export async function dashboardFiliacaoSituacaoRegiaoInconsistenciasController(
+  _request: FastifyRequest,
+  reply: FastifyReply
+) {
+  const inconsistencias = await dashboardService.getFiliacaoSituacaoRegiaoInconsistencias();
+
+  return successResponse(
+    reply,
+    inconsistencias,
+    'Inconsistências de região na situação funcional carregadas com sucesso.'
+  );
+}
+
 export async function dashboardFiliacaoSituacaoDesfiliadosDistribuicaoController(
   _request: FastifyRequest,
   reply: FastifyReply
@@ -74,6 +109,45 @@ export async function dashboardFiliacaoSituacaoDesfiliadosSexoDistribuicaoContro
     reply,
     distribuicao,
     'Distribuição por sexo na situação de filiações desfiliadas carregada com sucesso.'
+  );
+}
+
+export async function dashboardFiliacaoSituacaoDesfiliadosSexoInconsistenciasController(
+  _request: FastifyRequest,
+  reply: FastifyReply
+) {
+  const inconsistencias = await dashboardService.getFiliacaoSituacaoDesfiliadosSexoInconsistencias();
+
+  return successResponse(
+    reply,
+    inconsistencias,
+    'Inconsistências de sexo na situação de filiações desfiliadas carregadas com sucesso.'
+  );
+}
+
+export async function dashboardFiliacaoSituacaoDesfiliadosRegiaoDistribuicaoController(
+  _request: FastifyRequest,
+  reply: FastifyReply
+) {
+  const distribuicao = await dashboardService.getFiliacaoSituacaoDesfiliadosRegiaoDistribuicao();
+
+  return successResponse(
+    reply,
+    distribuicao,
+    'Distribuição por região na situação de filiações desfiliadas carregada com sucesso.'
+  );
+}
+
+export async function dashboardFiliacaoSituacaoDesfiliadosRegiaoInconsistenciasController(
+  _request: FastifyRequest,
+  reply: FastifyReply
+) {
+  const inconsistencias = await dashboardService.getFiliacaoSituacaoDesfiliadosRegiaoInconsistencias();
+
+  return successResponse(
+    reply,
+    inconsistencias,
+    'Inconsistências de região na situação de filiações desfiliadas carregadas com sucesso.'
   );
 }
 

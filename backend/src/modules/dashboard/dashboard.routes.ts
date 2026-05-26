@@ -2,7 +2,13 @@ import type { FastifyInstance } from 'fastify';
 import {
   dashboardDetalhesController,
   dashboardFiliacaoSituacaoDesfiliadosDistribuicaoController,
+  dashboardFiliacaoSituacaoDesfiliadosRegiaoDistribuicaoController,
+  dashboardFiliacaoSituacaoDesfiliadosRegiaoInconsistenciasController,
+  dashboardFiliacaoSituacaoDesfiliadosSexoInconsistenciasController,
   dashboardFiliacaoSituacaoDesfiliadosSexoDistribuicaoController,
+  dashboardFiliacaoSituacaoRegiaoInconsistenciasController,
+  dashboardFiliacaoSituacaoRegiaoDistribuicaoController,
+  dashboardFiliacaoSituacaoSexoInconsistenciasController,
   dashboardFiliacaoSituacaoDistribuicaoController,
   dashboardFiliacaoSituacaoSexoDistribuicaoController,
   dashboardResumoController,
@@ -24,6 +30,21 @@ export async function dashboardRoutes(app: FastifyInstance) {
     dashboardFiliacaoSituacaoSexoDistribuicaoController
   );
   app.get(
+    '/filiacao-situacao-sexo-inconsistencias',
+    { preHandler: authMiddleware },
+    dashboardFiliacaoSituacaoSexoInconsistenciasController
+  );
+  app.get(
+    '/filiacao-situacao-regiao-distribuicao',
+    { preHandler: authMiddleware },
+    dashboardFiliacaoSituacaoRegiaoDistribuicaoController
+  );
+  app.get(
+    '/filiacao-situacao-regiao-inconsistencias',
+    { preHandler: authMiddleware },
+    dashboardFiliacaoSituacaoRegiaoInconsistenciasController
+  );
+  app.get(
     '/filiacao-situacao-desfiliados-distribuicao',
     { preHandler: authMiddleware },
     dashboardFiliacaoSituacaoDesfiliadosDistribuicaoController
@@ -32,6 +53,21 @@ export async function dashboardRoutes(app: FastifyInstance) {
     '/filiacao-situacao-desfiliados-sexo-distribuicao',
     { preHandler: authMiddleware },
     dashboardFiliacaoSituacaoDesfiliadosSexoDistribuicaoController
+  );
+  app.get(
+    '/filiacao-situacao-desfiliados-sexo-inconsistencias',
+    { preHandler: authMiddleware },
+    dashboardFiliacaoSituacaoDesfiliadosSexoInconsistenciasController
+  );
+  app.get(
+    '/filiacao-situacao-desfiliados-regiao-distribuicao',
+    { preHandler: authMiddleware },
+    dashboardFiliacaoSituacaoDesfiliadosRegiaoDistribuicaoController
+  );
+  app.get(
+    '/filiacao-situacao-desfiliados-regiao-inconsistencias',
+    { preHandler: authMiddleware },
+    dashboardFiliacaoSituacaoDesfiliadosRegiaoInconsistenciasController
   );
   app.get('/detalhes', { preHandler: authMiddleware }, dashboardDetalhesController);
 }
