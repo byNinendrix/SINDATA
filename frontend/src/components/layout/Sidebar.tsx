@@ -87,7 +87,7 @@ function MenuItems({ isCollapsed, onCloseMobile }: MenuItemsProps) {
       {items.map((item) => {
         const Icon = item.icon;
         const active = isActive(item.path);
-        const isGroupOpen = openGroups[item.label] ?? true;
+        const isGroupOpen = openGroups[item.label] ?? false;
 
         return (
           <div key={item.label} className="space-y-1">
