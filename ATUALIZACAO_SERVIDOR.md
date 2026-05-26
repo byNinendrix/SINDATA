@@ -241,3 +241,11 @@ git push origin main
 8. Validar `3333`, `3334`, health `200`
 9. `Ctrl+F5` e login
 
+## 13) Padrao funcional (Dashboard - Regiao/Inconsistencias)
+
+- O botao `Inconsistencias (N)` e padrao nas distribuicoes por regiao.
+- Ao abrir, mostrar `CPF` e `Nome` para manutencao.
+- No card "Situacao dos Desfiliados":
+  - base obrigatoria: `FILIADO.ASSOCIADO = 0`
+  - inconsistencias por regiao devem cobrir todas as situacoes ativas.
+

@@ -153,7 +153,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isMobileOpen, onCloseMo
   return (
     <>
       <aside
-        className={`hidden shrink-0 border-r border-slate-700/20 bg-sindata-800 text-slate-100 transition-all duration-300 lg:block ${
+        className={`sticky top-0 hidden h-screen shrink-0 border-r border-slate-700/20 bg-sindata-800 text-slate-100 transition-all duration-300 lg:flex lg:flex-col ${
           isCollapsed ? 'w-24' : 'w-72'
         }`}
       >
@@ -181,7 +181,9 @@ export function Sidebar({ isCollapsed, onToggleCollapse, isMobileOpen, onCloseMo
           </div>
         </div>
 
-        <MenuItems isCollapsed={isCollapsed} />
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <MenuItems isCollapsed={isCollapsed} />
+        </div>
       </aside>
 
       <div className={`fixed inset-0 z-40 lg:hidden ${isMobileOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
