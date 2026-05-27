@@ -2,11 +2,13 @@ import type { FastifyInstance } from 'fastify';
 import {
   dashboardDetalhesController,
   dashboardFiliacaoSituacaoDesfiliadosDistribuicaoController,
+  dashboardFiliacaoSituacaoDesfiliadosRegiaoEsferaSexoDistribuicaoController,
   dashboardFiliacaoSituacaoDesfiliadosRegiaoEsferaDistribuicaoController,
   dashboardFiliacaoSituacaoDesfiliadosRegiaoDistribuicaoController,
   dashboardFiliacaoSituacaoDesfiliadosRegiaoInconsistenciasController,
   dashboardFiliacaoSituacaoDesfiliadosSexoInconsistenciasController,
   dashboardFiliacaoSituacaoDesfiliadosSexoDistribuicaoController,
+  dashboardFiliacaoSituacaoRegiaoEsferaSexoDistribuicaoController,
   dashboardFiliacaoSituacaoRegiaoEsferaDistribuicaoController,
   dashboardFiliacaoSituacaoRegiaoInconsistenciasController,
   dashboardFiliacaoSituacaoRegiaoDistribuicaoController,
@@ -47,6 +49,11 @@ export async function dashboardRoutes(app: FastifyInstance) {
     dashboardFiliacaoSituacaoRegiaoEsferaDistribuicaoController
   );
   app.get(
+    '/filiacao-situacao-regiao-esfera-sexo-distribuicao',
+    { preHandler: authMiddleware },
+    dashboardFiliacaoSituacaoRegiaoEsferaSexoDistribuicaoController
+  );
+  app.get(
     '/filiacao-situacao-regiao-inconsistencias',
     { preHandler: authMiddleware },
     dashboardFiliacaoSituacaoRegiaoInconsistenciasController
@@ -75,6 +82,11 @@ export async function dashboardRoutes(app: FastifyInstance) {
     '/filiacao-situacao-desfiliados-regiao-esfera-distribuicao',
     { preHandler: authMiddleware },
     dashboardFiliacaoSituacaoDesfiliadosRegiaoEsferaDistribuicaoController
+  );
+  app.get(
+    '/filiacao-situacao-desfiliados-regiao-esfera-sexo-distribuicao',
+    { preHandler: authMiddleware },
+    dashboardFiliacaoSituacaoDesfiliadosRegiaoEsferaSexoDistribuicaoController
   );
   app.get(
     '/filiacao-situacao-desfiliados-regiao-inconsistencias',

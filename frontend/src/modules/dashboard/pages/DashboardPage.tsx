@@ -114,6 +114,18 @@ interface DashboardFiliacaoSituacaoRegiaoEsferaDistribuicaoResponse {
   items: DashboardFiliacaoSituacaoRegiaoEsferaDistribuicaoItem[];
 }
 
+interface DashboardFiliacaoSituacaoRegiaoEsferaSexoDistribuicaoItem {
+  esfera: string;
+  genero: string;
+  generoDescricao: string;
+  totalQtd: number;
+  totalPercentual: number;
+}
+
+interface DashboardFiliacaoSituacaoRegiaoEsferaSexoDistribuicaoResponse {
+  items: DashboardFiliacaoSituacaoRegiaoEsferaSexoDistribuicaoItem[];
+}
+
 interface DashboardFiliacaoSituacaoRegiaoInconsistenciaItem {
   situacaoCodigo: string;
   situacaoDescricao: string;
@@ -495,6 +507,12 @@ export function DashboardPage() {
   const [filiacaoSituacaoRegiaoEsferaError, setFiliacaoSituacaoRegiaoEsferaError] = useState('');
   const [filiacaoSituacaoRegiaoEsferaDistribuicao, setFiliacaoSituacaoRegiaoEsferaDistribuicao] = useState<
     DashboardFiliacaoSituacaoRegiaoEsferaDistribuicaoItem[]
+  >([]);
+  const [filiacaoSituacaoRegiaoEsferaSexoAberta, setFiliacaoSituacaoRegiaoEsferaSexoAberta] = useState('');
+  const [filiacaoSituacaoRegiaoEsferaSexoLoading, setFiliacaoSituacaoRegiaoEsferaSexoLoading] = useState(false);
+  const [filiacaoSituacaoRegiaoEsferaSexoError, setFiliacaoSituacaoRegiaoEsferaSexoError] = useState('');
+  const [filiacaoSituacaoRegiaoEsferaSexoDistribuicao, setFiliacaoSituacaoRegiaoEsferaSexoDistribuicao] = useState<
+    DashboardFiliacaoSituacaoRegiaoEsferaSexoDistribuicaoItem[]
   >([]);
   const [filiacaoSituacaoRegiaoAberta, setFiliacaoSituacaoRegiaoAberta] = useState('');
   const [filiacaoSituacaoRegiaoInconsistenciasLoading, setFiliacaoSituacaoRegiaoInconsistenciasLoading] =
@@ -1185,6 +1203,9 @@ export function DashboardPage() {
     setFiliacaoSituacaoRegiaoEsferaLoading(true);
     setFiliacaoSituacaoRegiaoEsferaError('');
     setFiliacaoSituacaoRegiaoEsferaDistribuicao([]);
+    setFiliacaoSituacaoRegiaoEsferaSexoAberta('');
+    setFiliacaoSituacaoRegiaoEsferaSexoError('');
+    setFiliacaoSituacaoRegiaoEsferaSexoDistribuicao([]);
 
     try {
       const endpoint =
@@ -1209,6 +1230,52 @@ export function DashboardPage() {
     } finally {
       setFiliacaoSituacaoRegiaoEsferaLoading(false);
     }
+  }
+
+  function toggleDetalheSexoRegiaoEsfera(esfera: string) {
+    const esferaNormalizada = String(esfera ?? '').trim().toUpperCase();
+
+    if (!filiacaoSituacaoRegiaoEsferaModal) {
+      return;
+    }
+
+    if (filiacaoSituacaoRegiaoEsferaSexoAberta === esferaNormalizada) {
+      setFiliacaoSituacaoRegiaoEsferaSexoAberta('');
+      setFiliacaoSituacaoRegiaoEsferaSexoError('');
+      setFiliacaoSituacaoRegiaoEsferaSexoDistribuicao([]);
+      return;
+    }
+
+    setFiliacaoSituacaoRegiaoEsferaSexoAberta(esferaNormalizada);
+    setFiliacaoSituacaoRegiaoEsferaSexoLoading(true);
+    setFiliacaoSituacaoRegiaoEsferaSexoError('');
+    setFiliacaoSituacaoRegiaoEsferaSexoDistribuicao([]);
+
+    const endpoint =
+      filiacaoSituacaoRegiaoEsferaModal.origem === 'desfiliados'
+        ? '/dashboard/filiacao-situacao-desfiliados-regiao-esfera-sexo-distribuicao'
+        : '/dashboard/filiacao-situacao-regiao-esfera-sexo-distribuicao';
+
+    void api
+      .get<{ data: DashboardFiliacaoSituacaoRegiaoEsferaSexoDistribuicaoResponse }>(endpoint, {
+        params: {
+          situacaoCodigo: filiacaoSituacaoRegiaoEsferaModal.situacaoCodigo,
+          regiaoCodigo: filiacaoSituacaoRegiaoEsferaModal.regiaoCodigo,
+          esfera: esferaNormalizada
+        }
+      })
+      .then((response) => {
+        setFiliacaoSituacaoRegiaoEsferaSexoDistribuicao(response.data.data.items ?? []);
+      })
+      .catch(() => {
+        setFiliacaoSituacaoRegiaoEsferaSexoDistribuicao([]);
+        setFiliacaoSituacaoRegiaoEsferaSexoError(
+          'Nao foi possivel carregar a distribuicao por sexo para a esfera selecionada.'
+        );
+      })
+      .finally(() => {
+        setFiliacaoSituacaoRegiaoEsferaSexoLoading(false);
+      });
   }
 
   function toggleDetalheSexoSituacaoDesfiliados(codigo: string) {
@@ -2176,6 +2243,8 @@ export function DashboardPage() {
                   <>
                     {filiacaoSituacaoRegiaoEsferaDistribuicao.map((item) => {
                       const isEstado = item.esfera.toUpperCase() === 'ESTADO';
+                      const esferaNormalizada = item.esfera.toUpperCase();
+                      const sexoAbertoNaEsfera = filiacaoSituacaoRegiaoEsferaSexoAberta === esferaNormalizada;
                       return (
                         <div
                           key={item.esfera}
@@ -2189,9 +2258,42 @@ export function DashboardPage() {
                               />
                               {isEstado ? 'Estado' : 'Municipio'}
                             </span>
-                            <span>{item.totalQtd.toLocaleString('pt-BR')}</span>
+                            <div className="flex items-center gap-2">
+                              <span>{item.totalQtd.toLocaleString('pt-BR')}</span>
+                              <button
+                                type="button"
+                                className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-800"
+                                aria-expanded={sexoAbertoNaEsfera}
+                                onClick={() => toggleDetalheSexoRegiaoEsfera(item.esfera)}
+                              >
+                                {sexoAbertoNaEsfera ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                                {sexoAbertoNaEsfera ? 'Ocultar' : 'Ver sexo'}
+                              </button>
+                            </div>
                           </div>
                           <p className="mt-1 text-xs text-slate-500">{item.totalPercentual.toFixed(2).replace('.', ',')}%</p>
+                          {sexoAbertoNaEsfera ? (
+                            <div className="mt-3 rounded-md border border-slate-200 bg-white p-2.5">
+                              {filiacaoSituacaoRegiaoEsferaSexoError ? (
+                                <p className="text-xs text-rose-700">{filiacaoSituacaoRegiaoEsferaSexoError}</p>
+                              ) : filiacaoSituacaoRegiaoEsferaSexoLoading ? (
+                                <p className="text-xs text-slate-500">Carregando distribuicao por sexo...</p>
+                              ) : filiacaoSituacaoRegiaoEsferaSexoDistribuicao.length === 0 ? (
+                                <p className="text-xs text-slate-500">Nenhum dado de sexo encontrado para esta esfera.</p>
+                              ) : (
+                                <div className="space-y-2">
+                                  {filiacaoSituacaoRegiaoEsferaSexoDistribuicao.map((sexoItem) => (
+                                    <div key={`${sexoItem.esfera}-${sexoItem.genero}`} className="flex items-center justify-between gap-2">
+                                      <span className="text-xs font-medium text-slate-700">{sexoItem.generoDescricao || sexoItem.genero}</span>
+                                      <span className="text-xs text-slate-600">
+                                        {sexoItem.totalQtd.toLocaleString('pt-BR')} ({sexoItem.totalPercentual.toFixed(2).replace('.', ',')}%)
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ) : null}
                         </div>
                       );
                     })}

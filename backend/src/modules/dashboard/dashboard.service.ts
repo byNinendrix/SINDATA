@@ -115,6 +115,18 @@ export interface DashboardFiliacaoSituacaoRegiaoEsferaDistribuicaoResponse {
   items: DashboardFiliacaoSituacaoRegiaoEsferaDistribuicaoItem[];
 }
 
+export interface DashboardFiliacaoSituacaoRegiaoEsferaSexoDistribuicaoItem {
+  esfera: string;
+  genero: string;
+  generoDescricao: string;
+  totalQtd: number;
+  totalPercentual: number;
+}
+
+export interface DashboardFiliacaoSituacaoRegiaoEsferaSexoDistribuicaoResponse {
+  items: DashboardFiliacaoSituacaoRegiaoEsferaSexoDistribuicaoItem[];
+}
+
 export interface DashboardFiliacaoSituacaoRegiaoInconsistenciaItem {
   situacaoCodigo: string;
   situacaoDescricao: string;
@@ -253,6 +265,14 @@ interface DashboardFiliacaoSituacaoRegiaoEsferaDistribuicaoRow {
   esfera: string | null;
   totalQtd: number | string;
   totalGeralQtd: number | string;
+}
+
+interface DashboardFiliacaoSituacaoRegiaoEsferaSexoDistribuicaoRow {
+  esfera: string | null;
+  genero: string | null;
+  generoDescricao: string | null;
+  totalQtd: number | string;
+  totalEsferaQtd: number | string;
 }
 
 interface DashboardFiliacaoSituacaoRegiaoInconsistenciaRow {
@@ -1073,6 +1093,101 @@ export class DashboardService {
     return { items };
   }
 
+  async getFiliacaoSituacaoRegiaoEsferaSexoDistribuicao(
+    situacaoCodigo: string,
+    regiaoCodigo: string,
+    esfera: string
+  ): Promise<DashboardFiliacaoSituacaoRegiaoEsferaSexoDistribuicaoResponse> {
+    const pool = await getSqlPool();
+    const result = await queryReadOnly<DashboardFiliacaoSituacaoRegiaoEsferaSexoDistribuicaoRow>(
+      pool
+        .request()
+        .input('situacaoCodigo', sql.VarChar(20), situacaoCodigo)
+        .input('regiaoCodigo', sql.VarChar(20), regiaoCodigo)
+        .input('esfera', sql.VarChar(20), String(esfera ?? '').trim().toUpperCase()),
+      `
+        WITH Generos AS (
+          SELECT
+            g.GENERO AS genero,
+            g.DESCRICAO AS descricao
+          FROM dbo.GENERO AS g
+        ),
+        Base AS (
+          SELECT
+            f.SITUACAO AS situacaoCodigo,
+            CASE
+              WHEN CAST(f.SITUACAO AS VARCHAR(20)) = '1' THEN pr.REGIAO
+              WHEN CAST(f.SITUACAO AS VARCHAR(20)) = '3' THEN gc.REGIAO
+              ELSE pr.REGIAO
+            END AS regiaoCodigo,
+            CASE
+              WHEN ISNULL(cfg.ESTADUAL, 0) = 1 THEN 'ESTADO'
+              ELSE 'MUNICIPIO'
+            END AS esfera,
+            p.SEXO AS genero
+          FROM dbo.FILIADO AS f
+          LEFT JOIN dbo.PREDIO AS pr
+            ON pr.CODIGO_EMPRESA = f.CODIGO_EMPRESA
+            AND pr.CODIGO = f.CODIGO_PREDIO
+          LEFT JOIN dbo.PESSOAS AS p
+            ON p.CPF = f.CPF
+          LEFT JOIN dbo.GLO_CIDADE AS gc
+            ON gc.UF = p.ESTADO
+            AND gc.CIDADE = p.CIDADE
+          LEFT JOIN dbo.SINDATA_CONFIG_PREDIO_ENTE_PUBLICO AS cfg
+            ON cfg.CODIGO_EMPRESA = f.CODIGO_EMPRESA
+            AND cfg.CODIGO_PREDIO = f.CODIGO_PREDIO
+          WHERE f.ASSOCIADO = -1
+        ),
+        Filtrado AS (
+          SELECT
+            b.esfera,
+            b.genero,
+            COUNT_BIG(1) AS totalQtd
+          FROM Base AS b
+          WHERE
+            CAST(b.situacaoCodigo AS VARCHAR(20)) = @situacaoCodigo
+            AND CAST(b.regiaoCodigo AS VARCHAR(20)) = @regiaoCodigo
+            AND b.esfera = @esfera
+          GROUP BY
+            b.esfera,
+            b.genero
+        ),
+        Total AS (
+          SELECT ISNULL(SUM(f.totalQtd), 0) AS totalEsferaQtd
+          FROM Filtrado AS f
+        )
+        SELECT
+          @esfera AS esfera,
+          g.genero,
+          g.descricao AS generoDescricao,
+          ISNULL(f.totalQtd, 0) AS totalQtd,
+          t.totalEsferaQtd
+        FROM Generos AS g
+        LEFT JOIN Filtrado AS f
+          ON f.genero = g.genero
+        CROSS JOIN Total AS t
+        ORDER BY
+          g.descricao ASC
+      `
+    );
+
+    const items: DashboardFiliacaoSituacaoRegiaoEsferaSexoDistribuicaoItem[] = result.recordset.map((row) => {
+      const totalQtd = this.parseSqlNumber(row.totalQtd ?? 0);
+      const totalEsferaQtd = this.parseSqlNumber(row.totalEsferaQtd ?? 0);
+
+      return {
+        esfera: String(row.esfera ?? ''),
+        genero: String(row.genero ?? ''),
+        generoDescricao: String(row.generoDescricao ?? ''),
+        totalQtd,
+        totalPercentual: this.calculatePercentage(totalQtd, totalEsferaQtd)
+      };
+    });
+
+    return { items };
+  }
+
   async getFiliacaoSituacaoRegiaoInconsistencias(): Promise<DashboardFiliacaoSituacaoRegiaoInconsistenciasResponse> {
     const pool = await getSqlPool();
     const result = await queryReadOnly<DashboardFiliacaoSituacaoRegiaoInconsistenciaRow>(
@@ -1522,6 +1637,101 @@ export class DashboardService {
         esfera: String(row.esfera ?? ''),
         totalQtd,
         totalPercentual: this.calculatePercentage(totalQtd, totalGeralQtd)
+      };
+    });
+
+    return { items };
+  }
+
+  async getFiliacaoSituacaoDesfiliadosRegiaoEsferaSexoDistribuicao(
+    situacaoCodigo: string,
+    regiaoCodigo: string,
+    esfera: string
+  ): Promise<DashboardFiliacaoSituacaoRegiaoEsferaSexoDistribuicaoResponse> {
+    const pool = await getSqlPool();
+    const result = await queryReadOnly<DashboardFiliacaoSituacaoRegiaoEsferaSexoDistribuicaoRow>(
+      pool
+        .request()
+        .input('situacaoCodigo', sql.VarChar(20), situacaoCodigo)
+        .input('regiaoCodigo', sql.VarChar(20), regiaoCodigo)
+        .input('esfera', sql.VarChar(20), String(esfera ?? '').trim().toUpperCase()),
+      `
+        WITH Generos AS (
+          SELECT
+            g.GENERO AS genero,
+            g.DESCRICAO AS descricao
+          FROM dbo.GENERO AS g
+        ),
+        Base AS (
+          SELECT
+            f.SITUACAO AS situacaoCodigo,
+            CASE
+              WHEN CAST(f.SITUACAO AS VARCHAR(20)) = '1' THEN pr.REGIAO
+              WHEN CAST(f.SITUACAO AS VARCHAR(20)) = '3' THEN gc.REGIAO
+              ELSE pr.REGIAO
+            END AS regiaoCodigo,
+            CASE
+              WHEN ISNULL(cfg.ESTADUAL, 0) = 1 THEN 'ESTADO'
+              ELSE 'MUNICIPIO'
+            END AS esfera,
+            p.SEXO AS genero
+          FROM dbo.FILIADO AS f
+          LEFT JOIN dbo.PREDIO AS pr
+            ON pr.CODIGO_EMPRESA = f.CODIGO_EMPRESA
+            AND pr.CODIGO = f.CODIGO_PREDIO
+          LEFT JOIN dbo.PESSOAS AS p
+            ON p.CPF = f.CPF
+          LEFT JOIN dbo.GLO_CIDADE AS gc
+            ON gc.UF = p.ESTADO
+            AND gc.CIDADE = p.CIDADE
+          LEFT JOIN dbo.SINDATA_CONFIG_PREDIO_ENTE_PUBLICO AS cfg
+            ON cfg.CODIGO_EMPRESA = f.CODIGO_EMPRESA
+            AND cfg.CODIGO_PREDIO = f.CODIGO_PREDIO
+          WHERE f.ASSOCIADO = 0
+        ),
+        Filtrado AS (
+          SELECT
+            b.esfera,
+            b.genero,
+            COUNT_BIG(1) AS totalQtd
+          FROM Base AS b
+          WHERE
+            CAST(b.situacaoCodigo AS VARCHAR(20)) = @situacaoCodigo
+            AND CAST(b.regiaoCodigo AS VARCHAR(20)) = @regiaoCodigo
+            AND b.esfera = @esfera
+          GROUP BY
+            b.esfera,
+            b.genero
+        ),
+        Total AS (
+          SELECT ISNULL(SUM(f.totalQtd), 0) AS totalEsferaQtd
+          FROM Filtrado AS f
+        )
+        SELECT
+          @esfera AS esfera,
+          g.genero,
+          g.descricao AS generoDescricao,
+          ISNULL(f.totalQtd, 0) AS totalQtd,
+          t.totalEsferaQtd
+        FROM Generos AS g
+        LEFT JOIN Filtrado AS f
+          ON f.genero = g.genero
+        CROSS JOIN Total AS t
+        ORDER BY
+          g.descricao ASC
+      `
+    );
+
+    const items: DashboardFiliacaoSituacaoRegiaoEsferaSexoDistribuicaoItem[] = result.recordset.map((row) => {
+      const totalQtd = this.parseSqlNumber(row.totalQtd ?? 0);
+      const totalEsferaQtd = this.parseSqlNumber(row.totalEsferaQtd ?? 0);
+
+      return {
+        esfera: String(row.esfera ?? ''),
+        genero: String(row.genero ?? ''),
+        generoDescricao: String(row.generoDescricao ?? ''),
+        totalQtd,
+        totalPercentual: this.calculatePercentage(totalQtd, totalEsferaQtd)
       };
     });
 

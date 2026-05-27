@@ -32,6 +32,7 @@ const items: MenuItem[] = [
   { label: 'Filiados', icon: Users },
   { label: 'Financeiro', icon: Wallet },
   { label: 'Relatórios', icon: FileText },
+  { label: 'Gerador de Relatórios', icon: FileText, path: '/relatorios/gerador' },
   { label: 'Dashboards', icon: BarChart3 },
   { label: 'Qualidade de Dados', icon: Database },
   { label: 'Exportações', icon: FileSpreadsheet },

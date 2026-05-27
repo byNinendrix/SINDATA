@@ -26,6 +26,12 @@ const filiacaoSituacaoRegiaoEsferaQuerySchema = z.object({
   regiaoCodigo: z.string().trim().min(1)
 });
 
+const filiacaoSituacaoRegiaoEsferaSexoQuerySchema = z.object({
+  situacaoCodigo: z.string().trim().min(1),
+  regiaoCodigo: z.string().trim().min(1),
+  esfera: z.string().trim().min(1)
+});
+
 export async function dashboardResumoController(_request: FastifyRequest, reply: FastifyReply) {
   const resumo = await dashboardService.getResumo();
 
@@ -95,6 +101,30 @@ export async function dashboardFiliacaoSituacaoRegiaoEsferaDistribuicaoControlle
     reply,
     distribuicao,
     'Distribuição Estado/Município por situação e região carregada com sucesso.'
+  );
+}
+
+export async function dashboardFiliacaoSituacaoRegiaoEsferaSexoDistribuicaoController(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
+  const parsedQuery = filiacaoSituacaoRegiaoEsferaSexoQuerySchema.safeParse(request.query);
+
+  if (!parsedQuery.success) {
+    return errorResponse(reply, 'Parâmetros inválidos para distribuição de sexo por Estado/Município.', 400);
+  }
+
+  const { situacaoCodigo, regiaoCodigo, esfera } = parsedQuery.data;
+  const distribuicao = await dashboardService.getFiliacaoSituacaoRegiaoEsferaSexoDistribuicao(
+    situacaoCodigo,
+    regiaoCodigo,
+    esfera
+  );
+
+  return successResponse(
+    reply,
+    distribuicao,
+    'Distribuição de sexo por Estado/Município carregada com sucesso.'
   );
 }
 
@@ -183,6 +213,30 @@ export async function dashboardFiliacaoSituacaoDesfiliadosRegiaoEsferaDistribuic
     reply,
     distribuicao,
     'Distribuição Estado/Município por situação e região dos desfiliados carregada com sucesso.'
+  );
+}
+
+export async function dashboardFiliacaoSituacaoDesfiliadosRegiaoEsferaSexoDistribuicaoController(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
+  const parsedQuery = filiacaoSituacaoRegiaoEsferaSexoQuerySchema.safeParse(request.query);
+
+  if (!parsedQuery.success) {
+    return errorResponse(reply, 'Parâmetros inválidos para distribuição de sexo por Estado/Município.', 400);
+  }
+
+  const { situacaoCodigo, regiaoCodigo, esfera } = parsedQuery.data;
+  const distribuicao = await dashboardService.getFiliacaoSituacaoDesfiliadosRegiaoEsferaSexoDistribuicao(
+    situacaoCodigo,
+    regiaoCodigo,
+    esfera
+  );
+
+  return successResponse(
+    reply,
+    distribuicao,
+    'Distribuição de sexo por Estado/Município dos desfiliados carregada com sucesso.'
   );
 }
 

@@ -22,6 +22,11 @@ const definitions: AppTabDefinition[] = [
     path: '/configuracoes',
     label: 'Ente Publico Estadual',
     matchMode: 'exact'
+  },
+  {
+    path: '/relatorios/gerador',
+    label: 'Gerador de Relatorios',
+    matchMode: 'exact'
   }
 ];
 
