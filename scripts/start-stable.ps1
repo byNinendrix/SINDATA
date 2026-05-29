@@ -26,7 +26,7 @@ function Save-Pid {
     [Parameter(Mandatory = $true)] [string] $Name,
     [Parameter(Mandatory = $true)] [int] $ProcessId
   )
-  Write-NoBomFile -Path (Join-Path $logsDir "$Name.pid") -Value "$Pid"
+  Write-NoBomFile -Path (Join-Path $logsDir "$Name.pid") -Value "$ProcessId"
 }
 
 function Start-ManagedProcess {
@@ -76,7 +76,7 @@ Write-Host 'Subindo frontend (preview estavel)...'
 $frontendProc = Start-ManagedProcess `
   -Name 'frontend' `
   -FilePath 'npm.cmd' `
-  -Arguments @('run', 'preview', '--', '--host', '0.0.0.0', '--port', '5173', '--strictPort') `
+  -Arguments @('run', 'preview', '--', '--host', '0.0.0.0', '--port', '3333', '--strictPort') `
   -WorkingDirectory $frontendDir
 
 Write-Host 'Subindo watchdog...'

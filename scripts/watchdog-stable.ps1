@@ -84,7 +84,7 @@ function Restart-Frontend {
       Stop-Process -Id ([int]$pidValue) -Force -ErrorAction SilentlyContinue
     }
   }
-  Start-ManagedProcess -Name 'frontend' -FilePath 'npm.cmd' -Arguments @('run', 'preview', '--', '--host', '0.0.0.0', '--port', '5173', '--strictPort') -WorkingDirectory $frontendDir
+  Start-ManagedProcess -Name 'frontend' -FilePath 'npm.cmd' -Arguments @('run', 'preview', '--', '--host', '0.0.0.0', '--port', '3333', '--strictPort') -WorkingDirectory $frontendDir
 }
 
 Log-Line 'Watchdog iniciado.'
@@ -94,7 +94,7 @@ while ($true) {
     Start-Sleep -Seconds 2
   }
 
-  if (-not (Test-Http -Url 'http://127.0.0.1:5173')) {
+  if (-not (Test-Http -Url 'http://127.0.0.1:3333')) {
     Restart-Frontend
     Start-Sleep -Seconds 2
   }
