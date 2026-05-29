@@ -2,8 +2,10 @@
 import { z } from 'zod';
 import { errorResponse, successResponse } from '../../shared/utils/response';
 import { DashboardService, type DashboardDetalheCardKey } from './dashboard.service';
+import { DashboardConsignacoesService } from './dashboard.consignacoes.service';
 
 const dashboardService = new DashboardService();
+const dashboardConsignacoesService = new DashboardConsignacoesService();
 
 const detalhesQuerySchema = z.object({
   cardKey: z.enum([
@@ -30,6 +32,16 @@ const filiacaoSituacaoRegiaoEsferaSexoQuerySchema = z.object({
   situacaoCodigo: z.string().trim().min(1),
   regiaoCodigo: z.string().trim().min(1),
   esfera: z.string().trim().min(1)
+});
+
+const consignacoesQuerySchema = z.object({
+  ano: z.coerce.number().int().min(1900).max(2999).optional(),
+  mes: z.coerce.number().int().min(1).max(12).optional(),
+  regiao: z.string().trim().min(1).max(10).optional(),
+  situacao: z.string().trim().min(1).max(10).optional(),
+  codigoEmpresa: z.string().trim().min(1).max(20).optional(),
+  periodoInicio: z.string().trim().regex(/^\d{4}-\d{2}$/).optional(),
+  periodoFim: z.string().trim().regex(/^\d{4}-\d{2}$/).optional()
 });
 
 export async function dashboardResumoController(_request: FastifyRequest, reply: FastifyReply) {
@@ -269,4 +281,64 @@ export async function dashboardDetalhesController(request: FastifyRequest, reply
   );
 
   return successResponse(reply, detalhes, 'Detalhes carregados com sucesso.');
+}
+
+export async function dashboardConsignacoesResumoController(request: FastifyRequest, reply: FastifyReply) {
+  const parsedQuery = consignacoesQuerySchema.safeParse(request.query);
+  if (!parsedQuery.success) {
+    return errorResponse(reply, 'Parâmetros inválidos para resumo de consignações.', 400);
+  }
+
+  const data = await dashboardConsignacoesService.getResumo(parsedQuery.data);
+  return successResponse(reply, data, 'Resumo de consignações carregado com sucesso.');
+}
+
+export async function dashboardConsignacoesPorRegiaoController(request: FastifyRequest, reply: FastifyReply) {
+  const parsedQuery = consignacoesQuerySchema.safeParse(request.query);
+  if (!parsedQuery.success) {
+    return errorResponse(reply, 'Parâmetros inválidos para distribuição de consignações por região.', 400);
+  }
+
+  const data = await dashboardConsignacoesService.getPorRegiao(parsedQuery.data);
+  return successResponse(reply, data, 'Distribuição de consignações por região carregada com sucesso.');
+}
+
+export async function dashboardConsignacoesPorPeriodoController(request: FastifyRequest, reply: FastifyReply) {
+  const parsedQuery = consignacoesQuerySchema.safeParse(request.query);
+  if (!parsedQuery.success) {
+    return errorResponse(reply, 'Parâmetros inválidos para distribuição de consignações por período.', 400);
+  }
+
+  const data = await dashboardConsignacoesService.getPorPeriodo(parsedQuery.data);
+  return successResponse(reply, data, 'Distribuição de consignações por período carregada com sucesso.');
+}
+
+export async function dashboardConsignacoesPorSituacaoController(request: FastifyRequest, reply: FastifyReply) {
+  const parsedQuery = consignacoesQuerySchema.safeParse(request.query);
+  if (!parsedQuery.success) {
+    return errorResponse(reply, 'Parâmetros inválidos para distribuição de consignações por situação.', 400);
+  }
+
+  const data = await dashboardConsignacoesService.getPorSituacao(parsedQuery.data);
+  return successResponse(reply, data, 'Distribuição de consignações por situação carregada com sucesso.');
+}
+
+export async function dashboardConsignacoesPorEntePublicoController(request: FastifyRequest, reply: FastifyReply) {
+  const parsedQuery = consignacoesQuerySchema.safeParse(request.query);
+  if (!parsedQuery.success) {
+    return errorResponse(reply, 'Parâmetros inválidos para distribuição de consignações por ente público.', 400);
+  }
+
+  const data = await dashboardConsignacoesService.getPorEntePublico(parsedQuery.data);
+  return successResponse(reply, data, 'Distribuição de consignações por ente público carregada com sucesso.');
+}
+
+export async function dashboardConsignacoesInconsistenciasController(request: FastifyRequest, reply: FastifyReply) {
+  const parsedQuery = consignacoesQuerySchema.safeParse(request.query);
+  if (!parsedQuery.success) {
+    return errorResponse(reply, 'Parâmetros inválidos para inconsistências de consignações.', 400);
+  }
+
+  const data = await dashboardConsignacoesService.getInconsistencias(parsedQuery.data);
+  return successResponse(reply, data, 'Inconsistências de consignações carregadas com sucesso.');
 }

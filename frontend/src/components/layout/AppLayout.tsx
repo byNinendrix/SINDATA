@@ -69,6 +69,14 @@ export function AppLayout() {
     }
   }
 
+  function handleCloseAllTabs() {
+    const defaultTab = getDefaultTab();
+    setOpenTabs([defaultTab]);
+    if (location.pathname !== defaultTab.path) {
+      navigate(defaultTab.path);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="flex min-h-screen">
@@ -86,6 +94,7 @@ export function AppLayout() {
             activePath={activePath}
             onSelect={handleSelectTab}
             onClose={handleCloseTab}
+            onCloseAll={handleCloseAllTabs}
           />
           <main className="page-container animate-[fadeIn_260ms_ease-out]">
             <Outlet />

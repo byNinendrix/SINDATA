@@ -1,6 +1,7 @@
 ﻿import { Fragment, useEffect, useMemo, useState } from 'react';
 import { ChevronDown, ChevronRight, ChevronUp, Search, X } from 'lucide-react';
 import api from '../../../services/api';
+import { ConsignacoesSection } from '../components/ConsignacoesSection';
 
 type DashboardCardKey =
   | 'totalPessoas'
@@ -2175,6 +2176,8 @@ export function DashboardPage() {
           ) : null}
         </article>
       </section>
+
+      <ConsignacoesSection />
 
       {filiacaoSituacaoRegiaoEsferaModal ? (
         <div

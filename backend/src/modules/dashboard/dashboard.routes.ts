@@ -1,5 +1,11 @@
 import type { FastifyInstance } from 'fastify';
 import {
+  dashboardConsignacoesInconsistenciasController,
+  dashboardConsignacoesPorEntePublicoController,
+  dashboardConsignacoesPorPeriodoController,
+  dashboardConsignacoesPorRegiaoController,
+  dashboardConsignacoesPorSituacaoController,
+  dashboardConsignacoesResumoController,
   dashboardDetalhesController,
   dashboardFiliacaoSituacaoDesfiliadosDistribuicaoController,
   dashboardFiliacaoSituacaoDesfiliadosRegiaoEsferaSexoDistribuicaoController,
@@ -57,6 +63,36 @@ export async function dashboardRoutes(app: FastifyInstance) {
     '/filiacao-situacao-regiao-inconsistencias',
     { preHandler: authMiddleware },
     dashboardFiliacaoSituacaoRegiaoInconsistenciasController
+  );
+  app.get(
+    '/consignacoes/resumo',
+    { preHandler: authMiddleware },
+    dashboardConsignacoesResumoController
+  );
+  app.get(
+    '/consignacoes/por-regiao',
+    { preHandler: authMiddleware },
+    dashboardConsignacoesPorRegiaoController
+  );
+  app.get(
+    '/consignacoes/por-periodo',
+    { preHandler: authMiddleware },
+    dashboardConsignacoesPorPeriodoController
+  );
+  app.get(
+    '/consignacoes/por-situacao',
+    { preHandler: authMiddleware },
+    dashboardConsignacoesPorSituacaoController
+  );
+  app.get(
+    '/consignacoes/por-ente-publico',
+    { preHandler: authMiddleware },
+    dashboardConsignacoesPorEntePublicoController
+  );
+  app.get(
+    '/consignacoes/inconsistencias',
+    { preHandler: authMiddleware },
+    dashboardConsignacoesInconsistenciasController
   );
   app.get(
     '/filiacao-situacao-desfiliados-distribuicao',

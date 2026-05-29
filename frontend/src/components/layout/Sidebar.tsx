@@ -83,29 +83,44 @@ function MenuItems({ isCollapsed, onCloseMobile }: MenuItemsProps) {
     }));
   }
 
+  function isChildrenActive(children?: MenuChild[]) {
+    if (!children?.length) {
+      return false;
+    }
+    return children.some((child) => isActive(child.path));
+  }
+
   return (
     <nav className={`space-y-1 py-4 ${isCollapsed ? 'px-2' : 'px-4'}`}>
       {items.map((item) => {
         const Icon = item.icon;
-        const active = isActive(item.path);
-        const isGroupOpen = openGroups[item.label] ?? false;
+        const childrenActive = isChildrenActive(item.children);
+        const active = isActive(item.path) || childrenActive;
+        const isGroupOpen = openGroups[item.label] ?? childrenActive;
+        const hasChildren = Boolean(item.children?.length);
 
         return (
           <div key={item.label} className="space-y-1">
             <div className="flex items-center gap-1">
               <button
                 type="button"
-                onClick={() => go(item.path)}
+                onClick={() => {
+                  if (hasChildren) {
+                    toggleGroup(item.label);
+                    return;
+                  }
+                  go(item.path);
+                }}
                 className={`sidebar-item flex-1 ${isCollapsed ? 'justify-center px-2' : ''} ${
                   active ? 'bg-cyan-100/15 text-cyan-100' : ''
-                } ${item.path ? '' : 'cursor-default opacity-80'}`}
+                } ${item.path || hasChildren ? '' : 'cursor-default opacity-80'}`}
                 title={item.label}
               >
                 <Icon size={18} />
                 {!isCollapsed ? <span>{item.label}</span> : null}
               </button>
 
-              {!isCollapsed && item.children?.length ? (
+              {!isCollapsed && hasChildren ? (
                 <button
                   type="button"
                   onClick={() => toggleGroup(item.label)}

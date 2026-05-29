@@ -20,7 +20,7 @@ const definitions: AppTabDefinition[] = [
   defaultTab,
   {
     path: '/configuracoes',
-    label: 'Ente Publico Estadual',
+    label: 'Ente Público Estadual',
     matchMode: 'exact'
   },
   {
