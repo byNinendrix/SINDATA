@@ -10,6 +10,7 @@ import { authRoutes } from './modules/auth/auth.routes';
 import { configuracoesRoutes } from './modules/configuracoes/configuracoes.routes';
 import { dashboardRoutes } from './modules/dashboard/dashboard.routes';
 import { relatoriosRoutes } from './modules/relatorios/relatorios.routes';
+import { reportsRoutes } from './modules/reports/reports.routes';
 import { successResponse } from './shared/utils/response';
 
 export async function buildApp() {
@@ -44,6 +45,7 @@ export async function buildApp() {
   await app.register(dashboardRoutes, { prefix: '/api/dashboard' });
   await app.register(configuracoesRoutes, { prefix: '/api/configuracoes' });
   await app.register(relatoriosRoutes, { prefix: '/api/relatorios' });
+  await app.register(reportsRoutes, { prefix: '/api/reports' });
 
   const frontendDist = path.resolve(process.cwd(), '../frontend/dist');
   const hasFrontendBuild = fs.existsSync(frontendDist);

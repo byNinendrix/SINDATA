@@ -6,6 +6,7 @@ import { DashboardPage } from '../modules/dashboard/pages/DashboardPage';
 import { LoginPage } from '../modules/auth/pages/LoginPage';
 import { ConfiguracoesPage } from '../modules/configuracoes/pages/ConfiguracoesPage';
 import { ReportBuilderPage } from '../modules/relatorios/pages/ReportBuilderPage';
+import { SavedReportsPage } from '../modules/relatorios/pages/SavedReportsPage';
 
 function ProtectedRoute() {
   const { isAuthenticated } = useAuth();
@@ -59,6 +60,10 @@ export const router = createBrowserRouter([
           {
             path: '/relatorios/gerador',
             element: <ReportBuilderPage />
+          },
+          {
+            path: '/relatorios/modelos',
+            element: <SavedReportsPage />
           }
         ]
       }

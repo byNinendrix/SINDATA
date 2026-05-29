@@ -1,5 +1,8 @@
 import type {
   ReportBuilderConfig,
+  ReportFieldType,
+  ReportFilterCondition,
+  ReportFilterDraftState,
   ReportFieldOption,
   ReportFilterRule,
   ReportFiltersState,
@@ -12,6 +15,7 @@ export const reportTablesMetadataMock: ReportTableMetadata[] = [
   {
     id: 'pessoas',
     name: 'Pessoas',
+    category: 'pessoas_filiacoes',
     description: 'Dados cadastrais das pessoas.',
     fields: [
       { id: 'cpf', tableId: 'pessoas', name: 'CPF', label: 'CPF', type: 'texto' },
@@ -119,6 +123,7 @@ export const reportTablesMetadataMock: ReportTableMetadata[] = [
   {
     id: 'filiacoes',
     name: 'Filiacoes',
+    category: 'pessoas_filiacoes',
     description: 'Informacoes de vinculo sindical.',
     fields: [
       { id: 'id_filiado', tableId: 'filiacoes', name: 'ID_FILIADO', label: 'ID_FILIADO', type: 'numero' },
@@ -174,6 +179,7 @@ export const reportTablesMetadataMock: ReportTableMetadata[] = [
   {
     id: 'escolas',
     name: 'Predio',
+    category: 'estrutura_sindical',
     description: 'Dados dos predios.',
     fields: [
       { id: 'id_predio', tableId: 'escolas', name: 'ID_PREDIO', label: 'ID_PREDIO', type: 'numero' },
@@ -209,6 +215,7 @@ export const reportTablesMetadataMock: ReportTableMetadata[] = [
   {
     id: 'municipios',
     name: 'Municipios',
+    category: 'local_trabalho',
     description: 'Informacoes territoriais por municipio.',
     fields: [
       { id: 'nome_municipio', tableId: 'municipios', name: 'nome_municipio', label: 'Nome do municipio', type: 'texto' },
@@ -221,6 +228,7 @@ export const reportTablesMetadataMock: ReportTableMetadata[] = [
   {
     id: 'ente_publico',
     name: 'Ente Publico',
+    category: 'estrutura_sindical',
     description: 'Dados de ente publico (empresa).',
     fields: [
       { id: 'codigo', tableId: 'ente_publico', name: 'CODIGO', label: 'CODIGO', type: 'texto' },
@@ -255,6 +263,7 @@ export const reportTablesMetadataMock: ReportTableMetadata[] = [
   {
     id: 'regionais',
     name: 'Regionais',
+    category: 'local_trabalho',
     description: 'Dados das regionais de atuacao.',
     fields: [
       { id: 'nome_regional', tableId: 'regionais', name: 'nome_regional', label: 'Nome da regional', type: 'texto' },
@@ -265,6 +274,7 @@ export const reportTablesMetadataMock: ReportTableMetadata[] = [
   {
     id: 'financeiro',
     name: 'Financeiro',
+    category: 'financeiro',
     description: 'Informacoes de pagamento e contribuicoes.',
     fields: [
       { id: 'competencia', tableId: 'financeiro', name: 'competencia', label: 'Competencia', type: 'texto' },
@@ -277,6 +287,7 @@ export const reportTablesMetadataMock: ReportTableMetadata[] = [
   {
     id: 'atendimentos',
     name: 'Atendimentos',
+    category: 'atendimentos',
     description: 'Historico de atendimentos realizados.',
     fields: [
       { id: 'protocolo', tableId: 'atendimentos', name: 'protocolo', label: 'Protocolo', type: 'texto' },
@@ -289,6 +300,7 @@ export const reportTablesMetadataMock: ReportTableMetadata[] = [
   {
     id: 'cargos',
     name: 'Cargos',
+    category: 'estrutura_sindical',
     description: 'Informacoes de cargos funcionais.',
     fields: [
       { id: 'nome_cargo', tableId: 'cargos', name: 'nome_cargo', label: 'Nome do cargo', type: 'texto' },
@@ -300,6 +312,7 @@ export const reportTablesMetadataMock: ReportTableMetadata[] = [
   {
     id: 'locais_trabalho',
     name: 'Locais de Trabalho',
+    category: 'local_trabalho',
     description: 'Dados dos locais de exercicio profissional.',
     fields: [
       { id: 'local_nome', tableId: 'locais_trabalho', name: 'local_nome', label: 'Nome do local', type: 'texto' },
@@ -550,14 +563,52 @@ export const reportPreviewMock: Array<Record<string, string>> = [
   }
 ];
 
-export const reportFilterConditionsMock = [
-  'Igual a',
-  'Diferente de',
-  'Contem',
-  'Maior que',
-  'Menor que',
-  'Entre'
-];
+export const reportTableCategoryLabels: Record<string, string> = {
+  pessoas_filiacoes: 'Pessoas e Filiacoes',
+  estrutura_sindical: 'Estrutura Sindical',
+  local_trabalho: 'Local de Trabalho',
+  financeiro: 'Financeiro',
+  atendimentos: 'Atendimentos',
+  outros: 'Outros'
+};
+
+export const reportFilterConditionsByType: Record<ReportFieldType, ReportFilterCondition[]> = {
+  texto: [
+    'Contem',
+    'Nao contem',
+    'Igual a',
+    'Diferente de',
+    'Comeca com',
+    'Termina com',
+    'Esta vazio',
+    'Nao esta vazio'
+  ],
+  numero: [
+    'Igual a',
+    'Diferente de',
+    'Maior que',
+    'Maior ou igual',
+    'Menor que',
+    'Menor ou igual',
+    'Entre',
+    'Esta vazio',
+    'Nao esta vazio'
+  ],
+  data: [
+    'Igual a',
+    'Antes de',
+    'Depois de',
+    'Entre',
+    'Este mes',
+    'Este ano',
+    'Ultimos 7 dias',
+    'Ultimos 30 dias',
+    'Esta vazio',
+    'Nao esta vazio'
+  ],
+  booleano: ['Sim', 'Nao'],
+  lista: ['Igual a', 'Diferente de', 'Esta em', 'Nao esta em']
+};
 
 export const reportRegionalOptionsMock = ['Capital', 'Agreste', 'Centro Sul', 'Sul'];
 export const reportMunicipioOptionsMock = ['Aracaju', 'Itabaiana', 'Estancia', 'Lagarto'];
@@ -573,15 +624,20 @@ export const initialReportFilters: ReportFiltersState = {
 
 export const initialReportConfig: ReportBuilderConfig = {
   orderBy: '',
+  orderDirection: 'asc',
   groupBy: '',
   limit: '100',
   showTotals: false,
-  maskCpf: true
+  maskCpf: true,
+  maskName: false,
+  removeDuplicates: false
 };
 
-export const initialReportFilterDraft: Omit<ReportFilterRule, 'id'> = {
+export const initialReportFilterDraft: ReportFilterDraftState = {
+  connector: 'E',
   tableId: '',
   fieldId: '',
+  fieldType: 'texto',
   condition: 'Igual a',
   value: '',
   secondValue: ''

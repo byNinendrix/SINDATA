@@ -27,6 +27,11 @@ const definitions: AppTabDefinition[] = [
     path: '/relatorios/gerador',
     label: 'Gerador de Relatorios',
     matchMode: 'exact'
+  },
+  {
+    path: '/relatorios/modelos',
+    label: 'Modelos Salvos',
+    matchMode: 'exact'
   }
 ];
 

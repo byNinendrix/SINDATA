@@ -224,7 +224,7 @@ Quando houver ajuste de script/env em produção:
 
 ```powershell
 cd D:\Apps\SINDATA
-git add scripts/start-stable.ps1 scripts/watchdog-stable.ps1 frontend/.env.production
+git add scripts/start-stable.ps1 scripts/watchdog-stable.ps1 frontend/.env.production frontend/src/modules/dashboard/pages/DashboardPage.tsx
 git commit -m "fix(prod): ajustes de runtime/portas para deploy estável"
 git push origin main
 ```
@@ -248,4 +248,73 @@ git push origin main
 - No card "Situacao dos Desfiliados":
   - base obrigatoria: `FILIADO.ASSOCIADO = 0`
   - inconsistencias por regiao devem cobrir todas as situacoes ativas.
+
+## 14) Hardening anti-regressao (obrigatorio apos incidentes)
+
+### A) Nao editar `.tsx/.ts/.js` com `Get-Content` + `Set-Content` no Windows PowerShell 5.1
+
+Risco: quebrar acentuacao (`Visao`, `Filiacao`) por encoding.
+
+Use leitura/escrita explicita em UTF-8:
+
+```powershell
+$path = "D:\Apps\SINDATA\frontend\src\modules\dashboard\pages\DashboardPage.tsx"
+$raw = [System.IO.File]::ReadAllText($path, [System.Text.Encoding]::UTF8)
+# ...alteracao controlada...
+[System.IO.File]::WriteAllText($path, $raw, [System.Text.UTF8Encoding]::new($false))
+```
+
+Se quebrar encoding acidentalmente, restaurar arquivo e refazer com metodo seguro:
+
+```powershell
+cd D:\Apps\SINDATA
+git checkout -- frontend/src/modules/dashboard/pages/DashboardPage.tsx
+```
+
+### B) Confirmacao de rota nova no backend (teste sem token)
+
+Para rotas protegidas novas, o esperado sem token e `401` (nao `404`).
+Isso prova que a rota existe no processo em execucao.
+
+```powershell
+try { (Invoke-WebRequest -Uri "http://127.0.0.1:3334/api/dashboard/filiacao-situacao-regiao-esfera-sexo-distribuicao?situacaoCodigo=3&regiaoCodigo=AJ&esfera=ESTADO" -UseBasicParsing -TimeoutSec 5).StatusCode } catch { if ($_.Exception.Response) { [int]$_.Exception.Response.StatusCode } else { $_.Exception.Message } }
+```
+
+### C) Se der `404` em rota nova, reciclar backend de forma cirurgica
+
+```powershell
+$backendProcId = (Get-NetTCPConnection -LocalPort 3334 -State Listen | Select-Object -First 1 -ExpandProperty OwningProcess)
+Get-CimInstance Win32_Process -Filter "ProcessId = $backendProcId" | Select-Object ProcessId, ExecutablePath, CommandLine
+Stop-Process -Id $backendProcId -Force
+Start-Process -FilePath "D:\Apps\_runtime\node-v20.19.0-win-x64\node.exe" -ArgumentList "dist/server.js" -WorkingDirectory "D:\Apps\SINDATA\backend" -WindowStyle Hidden
+```
+
+### D) Evitar comandos gigantes em linha unica
+
+- Preferir 1 comando por vez (padrao deste playbook).
+- Evitar blocos longos com `;` em producao.
+- Validar resultado apos cada passo (build, stop/start, portas, health).
+
+## 15) Smoke test minimo apos deploy (frontend + backend)
+
+1. Portas:
+```powershell
+netstat -ano | findstr /R /C:":3333" /C:":3334"
+```
+
+2. Health backend:
+```powershell
+try { (Invoke-WebRequest -Uri http://127.0.0.1:3334/api/health -UseBasicParsing -TimeoutSec 5).StatusCode } catch { $_.Exception.Message }
+```
+
+3. Rota protegida critica (sem token):
+```powershell
+try { (Invoke-WebRequest -Uri "http://127.0.0.1:3334/api/dashboard/filiacao-situacao-regiao-esfera-sexo-distribuicao?situacaoCodigo=3&regiaoCodigo=AJ&esfera=ESTADO" -UseBasicParsing -TimeoutSec 5).StatusCode } catch { if ($_.Exception.Response) { [int]$_.Exception.Response.StatusCode } else { $_.Exception.Message } }
+```
+Esperado: `401` (se vier `404`, backend errado/antigo em execucao).
+
+4. Browser:
+  - `Ctrl + F5`
+  - login novamente
+  - validar tela sem texto quebrado de acentuacao
 

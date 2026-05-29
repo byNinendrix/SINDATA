@@ -1,8 +1,24 @@
-import { Crosshair, LocateFixed, Minus, Plus, Scan, Trash2 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ChevronDown,
+  ChevronRight,
+  Crosshair,
+  Eye,
+  EyeOff,
+  LocateFixed,
+  Minus,
+  Plus,
+  Scan,
+  Trash2
+} from 'lucide-react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import { ReportTableNode } from './ReportTableNode';
-import type { ReportManualRelation, ReportTableMetadata } from '../types/reportBuilder.types';
+import type {
+  ReportCanvasLayoutState,
+  ReportManualRelation,
+  ReportMetadataRelationSuggestion,
+  ReportTableMetadata
+} from '../types/reportBuilder.types';
 
 interface ReportFieldDragData {
   tableId: string;
@@ -23,11 +39,15 @@ interface ReportCanvasProps {
   allTables: ReportTableMetadata[];
   selectedTables: ReportTableMetadata[];
   manualRelations: ReportManualRelation[];
+  relationSuggestions?: ReportMetadataRelationSuggestion[];
   selectedFieldKeys: string[];
   onToggleField: (fieldKey: string) => void;
   onRemoveTable: (tableId: string) => void;
   onRemoveRelation: (relationId: string) => void;
   onCreateRelation: (source: ReportFieldDragData, target: ReportFieldDragData) => void;
+  initialLayout?: ReportCanvasLayoutState | null;
+  layoutSyncKey?: number;
+  onLayoutChange?: (next: ReportCanvasLayoutState) => void;
 }
 
 const TABLE_WIDTH = 320;
@@ -40,6 +60,10 @@ const DEFAULT_ZOOM = 1;
 
 function fieldKey(tableId: string, fieldId: string) {
   return `${tableId}.${fieldId}`;
+}
+
+function relationKey(sourceTableId: string, sourceFieldId: string, targetTableId: string, targetFieldId: string) {
+  return `${sourceTableId}.${sourceFieldId}->${targetTableId}.${targetFieldId}`;
 }
 
 function clampZoom(value: number) {
@@ -69,15 +93,19 @@ interface RelationGroup {
   relations: ReportManualRelation[];
 }
 
-export function ReportCanvas({
+export const ReportCanvas = memo(function ReportCanvas({
   allTables,
   selectedTables,
   manualRelations,
+  relationSuggestions,
   selectedFieldKeys,
   onToggleField,
   onRemoveTable,
   onRemoveRelation,
-  onCreateRelation
+  onCreateRelation,
+  initialLayout,
+  layoutSyncKey,
+  onLayoutChange
 }: ReportCanvasProps) {
   const [tablePositions, setTablePositions] = useState<Record<string, TablePosition>>({});
   const [canvasZoom, setCanvasZoom] = useState(DEFAULT_ZOOM);
@@ -97,6 +125,13 @@ export function ReportCanvas({
   } | null>(null);
   const [hoverDropFieldKey, setHoverDropFieldKey] = useState<string | null>(null);
   const [anchorTick, setAnchorTick] = useState(0);
+  const [showConnections, setShowConnections] = useState(true);
+  const [relationsPanelExpanded, setRelationsPanelExpanded] = useState(false);
+  const [hoveredRelationId, setHoveredRelationId] = useState<string | null>(null);
+  const [isDraggingNode, setIsDraggingNode] = useState(false);
+  const [isDraggingConnection, setIsDraggingConnection] = useState(false);
+  const [isPanningCanvas, setIsPanningCanvas] = useState(false);
+  const [actionFeedback, setActionFeedback] = useState('');
 
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const anchorElementsRef = useRef<Map<string, HTMLButtonElement>>(new Map());
@@ -122,6 +157,41 @@ export function ReportCanvas({
     return Array.from(grouped.values());
   }, [manualRelations]);
 
+  const relationSuggestionsVisible = useMemo(() => {
+    if (!relationSuggestions?.length) {
+      return [];
+    }
+
+    const selectedSet = new Set(selectedTables.map((table) => table.id));
+    return relationSuggestions.filter(
+      (relation) => selectedSet.has(relation.sourceTableId) && selectedSet.has(relation.targetTableId)
+    );
+  }, [relationSuggestions, selectedTables]);
+
+  const hasRelationCatalog = (relationSuggestions?.length ?? 0) > 0;
+
+  const homologatedRelationKeys = useMemo(() => {
+    const keys = new Set<string>();
+    for (const relation of relationSuggestions ?? []) {
+      keys.add(relationKey(relation.sourceTableId, relation.sourceFieldId, relation.targetTableId, relation.targetFieldId));
+      keys.add(relationKey(relation.targetTableId, relation.targetFieldId, relation.sourceTableId, relation.sourceFieldId));
+    }
+    return keys;
+  }, [relationSuggestions]);
+
+  const homologatedRelationById = useMemo(() => {
+    const statusById = new Map<string, boolean>();
+    for (const relation of manualRelations) {
+      statusById.set(
+        relation.id,
+        homologatedRelationKeys.has(
+          relationKey(relation.sourceTableId, relation.sourceFieldId, relation.targetTableId, relation.targetFieldId)
+        )
+      );
+    }
+    return statusById;
+  }, [homologatedRelationKeys, manualRelations]);
+
   const manualRelationFieldKeys = useMemo(
     () =>
       new Set(
@@ -144,8 +214,19 @@ export function ReportCanvas({
   }, [selectedTables]);
 
   useEffect(() => {
+    if (!initialLayout) {
+      return;
+    }
+    setTablePositions(initialLayout.tablePositions ?? {});
+    setCanvasZoom(clampZoom(initialLayout.canvasZoom || DEFAULT_ZOOM));
+    setCanvasOffset(initialLayout.canvasOffset ?? { x: 0, y: 0 });
+    setShowConnections(initialLayout.showConnections ?? true);
+  }, [layoutSyncKey]);
+
+  useEffect(() => {
     function handlePointerMove(event: PointerEvent) {
       if (draggingTable) {
+        setIsDraggingNode(true);
         const deltaX = (event.clientX - draggingTable.startPointer.x) / canvasZoom;
         const deltaY = (event.clientY - draggingTable.startPointer.y) / canvasZoom;
         setTablePositions((current) => ({
@@ -159,6 +240,7 @@ export function ReportCanvas({
       }
 
       if (panning) {
+        setIsPanningCanvas(true);
         const deltaX = event.clientX - panning.startPointer.x;
         const deltaY = event.clientY - panning.startPointer.y;
         setCanvasOffset({
@@ -169,6 +251,7 @@ export function ReportCanvas({
       }
 
       if (connectionDrag) {
+        setIsDraggingConnection(true);
         setConnectionDrag((current) => (current ? { ...current, pointer: { x: event.clientX, y: event.clientY } } : current));
 
         const hoveredElement = document.elementFromPoint(event.clientX, event.clientY) as HTMLElement | null;
@@ -197,10 +280,12 @@ export function ReportCanvas({
     function handlePointerUp(event: PointerEvent) {
       if (draggingTable) {
         setDraggingTable(null);
+        setIsDraggingNode(false);
       }
 
       if (panning) {
         setPanning(null);
+        setIsPanningCanvas(false);
       }
 
       if (connectionDrag) {
@@ -215,6 +300,7 @@ export function ReportCanvas({
         }
         setConnectionDrag(null);
         setHoverDropFieldKey(null);
+        setIsDraggingConnection(false);
       }
     }
 
@@ -234,7 +320,19 @@ export function ReportCanvas({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  useEffect(() => {
+    onLayoutChange?.({
+      tablePositions,
+      canvasZoom,
+      canvasOffset,
+      showConnections
+    });
+  }, [canvasOffset, canvasZoom, onLayoutChange, showConnections, tablePositions]);
+
   function startTableDrag(tableId: string, event: ReactPointerEvent<HTMLDivElement>) {
+    if (connectionDrag || panning) {
+      return;
+    }
     event.preventDefault();
     event.stopPropagation();
     const startPosition = tablePositions[tableId] ?? { x: 0, y: 0 };
@@ -246,6 +344,9 @@ export function ReportCanvas({
   }
 
   function startConnectionDrag(source: ReportFieldDragData, event: ReactPointerEvent<HTMLButtonElement>) {
+    if (draggingTable || panning) {
+      return;
+    }
     event.preventDefault();
     event.stopPropagation();
     setConnectionDrag({
@@ -256,6 +357,9 @@ export function ReportCanvas({
   }
 
   function startCanvasPan(event: ReactPointerEvent<HTMLDivElement>) {
+    if (draggingTable || connectionDrag) {
+      return;
+    }
     if (event.button !== 0) {
       return;
     }
@@ -278,16 +382,19 @@ export function ReportCanvas({
   function zoomBy(step: number) {
     setCanvasZoom((current) => clampZoom(current + step));
     setAnchorTick((current) => current + 1);
+    setActionFeedback('Zoom atualizado.');
   }
 
   function resetZoom() {
     setCanvasZoom(DEFAULT_ZOOM);
     setAnchorTick((current) => current + 1);
+    setActionFeedback('Zoom restaurado.');
   }
 
   function resetCanvasPosition() {
     setCanvasOffset({ x: 0, y: 0 });
     setAnchorTick((current) => current + 1);
+    setActionFeedback('Posicao do canvas restaurada.');
   }
 
   function resetModelLayout() {
@@ -298,7 +405,9 @@ export function ReportCanvas({
     setTablePositions(nextPositions);
     setCanvasOffset({ x: 0, y: 0 });
     setCanvasZoom(DEFAULT_ZOOM);
+    setShowConnections(true);
     setAnchorTick((current) => current + 1);
+    setActionFeedback('Layout do modelo restaurado.');
   }
 
   function getSelectedBounds() {
@@ -329,6 +438,7 @@ export function ReportCanvas({
     const y = viewportRect.height / 2 - (bounds.minY + bounds.height / 2) * zoom;
     setCanvasOffset({ x, y });
     setAnchorTick((current) => current + 1);
+    setActionFeedback('Layout centralizado.');
   }
 
   function fitToScreen() {
@@ -349,6 +459,7 @@ export function ReportCanvas({
     };
     setCanvasOffset(nextOffset);
     setAnchorTick((current) => current + 1);
+    setActionFeedback('Modelo ajustado a tela.');
   }
 
   const connectionLines = useMemo(() => {
@@ -419,58 +530,83 @@ export function ReportCanvas({
     <article className="ds-card space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="text-base font-semibold text-slate-900">Modelo do relatorio</h3>
+          <h3 className="text-base font-semibold text-slate-900">Modelo visual</h3>
           <p className="mt-1 text-xs text-slate-600">
-            Visualize as tabelas escolhidas, suas ligacoes e os campos de retorno.
-          </p>
-          <p className="mt-2 text-xs text-cyan-700">
-            Para criar uma ligacao, arraste o icone de conexao de um campo ate o campo correspondente em outra tabela.
-          </p>
-          <p className="mt-2 text-xs text-slate-600">
-            Checkbox = campo do relatorio. Icone de conexao = arraste para ligar tabelas. Arraste o cabecalho da tabela
-            para reposicionar.
+            Arraste o icone de conexao entre campos para criar ligacoes. Marque o checkbox dos campos que deseja exibir no
+            relatorio.
           </p>
           <p className="mt-2 text-xs font-medium text-slate-700">
-            {selectedTables.length} tabela(s) selecionada(s) · {selectedFieldKeys.length} campo(s) de retorno ·{' '}
-            {manualRelations.length} ligacao(oes) criada(s)
+            {selectedTables.length} tabela(s) | {selectedFieldKeys.length} campo(s) | {manualRelations.length} ligacao(oes)
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <button type="button" className="btn-secondary h-8 px-2.5 text-xs" onClick={() => zoomBy(-0.1)}>
+        <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 p-1.5">
+          <button type="button" className="btn-secondary h-8 px-2 text-xs" onClick={() => zoomBy(-0.1)}>
             <Minus size={14} />
           </button>
           <span className="inline-flex h-8 min-w-[58px] items-center justify-center rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700">
             {zoomLabel}
           </span>
-          <button type="button" className="btn-secondary h-8 px-2.5 text-xs" onClick={() => zoomBy(0.1)}>
+          <button type="button" className="btn-secondary h-8 px-2 text-xs" onClick={() => zoomBy(0.1)}>
             <Plus size={14} />
           </button>
-          <button type="button" className="btn-secondary h-8 px-2.5 text-xs" onClick={resetZoom}>
-            Resetar zoom
-          </button>
-          <button type="button" className="btn-secondary h-8 gap-1.5 px-2.5 text-xs" onClick={fitToScreen}>
+          <button type="button" className="btn-secondary h-8 gap-1 px-2 text-xs" onClick={fitToScreen}>
             <Scan size={13} />
             Ajustar a tela
           </button>
-          <button type="button" className="btn-secondary h-8 gap-1.5 px-2.5 text-xs" onClick={resetCanvasPosition}>
-            <Crosshair size={13} />
-            Resetar posicao
-          </button>
-          <button type="button" className="btn-secondary h-8 gap-1.5 px-2.5 text-xs" onClick={() => centerModel()}>
+          <button type="button" className="btn-secondary h-8 gap-1 px-2 text-xs" onClick={() => centerModel()}>
             <LocateFixed size={13} />
-            Centralizar modelo
+            Centralizar
           </button>
-          <button type="button" className="btn-secondary h-8 px-2.5 text-xs" onClick={resetModelLayout}>
+          <button type="button" className="btn-secondary h-8 gap-1 px-2 text-xs" onClick={resetCanvasPosition}>
+            <Crosshair size={13} />
+            Posicao
+          </button>
+          <button type="button" className="btn-secondary h-8 px-2 text-xs" onClick={resetZoom}>
+            Resetar zoom
+          </button>
+          <button type="button" className="btn-secondary h-8 px-2 text-xs" onClick={resetModelLayout}>
             Resetar layout
+          </button>
+          <button
+            type="button"
+            className="btn-secondary h-8 gap-1 px-2 text-xs"
+            onClick={() =>
+              setShowConnections((current) => {
+                const next = !current;
+                setActionFeedback(next ? 'Ligacoes visiveis no modelo.' : 'Ligacoes ocultas no modelo.');
+                return next;
+              })
+            }
+          >
+            {showConnections ? <EyeOff size={13} /> : <Eye size={13} />}
+            {showConnections ? 'Ocultar ligacoes' : 'Exibir ligacoes'}
           </button>
         </div>
       </div>
 
+      {actionFeedback ? (
+        <p className="text-xs text-cyan-700">
+          {actionFeedback}
+          {isDraggingNode || isDraggingConnection || isPanningCanvas ? ' Em interacao...' : ''}
+        </p>
+      ) : null}
+
       <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
-        <h4 className="text-sm font-semibold text-slate-900">Ligacoes criadas</h4>
-        {relationGroups.length === 0 ? (
-          <p className="text-xs text-slate-600">Nenhuma ligacao criada para a selecao atual.</p>
+        <button
+          type="button"
+          className="flex w-full items-center justify-between rounded-md bg-white px-2.5 py-2 text-left"
+          onClick={() => setRelationsPanelExpanded((current) => !current)}
+        >
+          <span className="text-sm font-semibold text-slate-900">Ligacoes criadas ({manualRelations.length})</span>
+          {relationsPanelExpanded ? <ChevronDown size={14} className="text-slate-600" /> : <ChevronRight size={14} className="text-slate-600" />}
+        </button>
+
+        {!relationsPanelExpanded ? null : relationGroups.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-slate-300 bg-white px-3 py-3 text-xs text-slate-600">
+            <p>Nenhuma ligacao criada ainda.</p>
+            <p className="mt-1">Arraste o icone de conexao de um campo ate outro para criar a primeira ligacao.</p>
+          </div>
         ) : (
           <div className="space-y-2">
             {relationGroups.map((group) => (
@@ -480,15 +616,36 @@ export function ReportCanvas({
                   {tableNameById.get(group.targetTableId) ?? group.targetTableId}
                 </p>
                 <div className="mt-2 space-y-1.5">
-                  {group.relations.map((relation) => (
-                    <div key={relation.id} className="flex items-center justify-between gap-2 rounded-md border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs text-slate-700">
-                      <span>
-                        {getFieldLabel(allTables, relation.sourceTableId, relation.sourceFieldId)} {'->'}{' '}
-                        {getFieldLabel(allTables, relation.targetTableId, relation.targetFieldId)}
-                      </span>
+                  {group.relations.map((relation) => {
+                    const mapped = homologatedRelationById.get(relation.id) ?? false;
+                    return (
+                    <div
+                      key={relation.id}
+                      className={`flex items-center justify-between gap-2 rounded-md border px-2 py-1.5 text-xs transition ${
+                        hoveredRelationId === relation.id
+                          ? 'border-cyan-300 bg-cyan-50 text-cyan-900'
+                          : 'border-slate-200 bg-slate-50 text-slate-700'
+                      }`}
+                      onMouseEnter={() => setHoveredRelationId(relation.id)}
+                      onMouseLeave={() => setHoveredRelationId((current) => (current === relation.id ? null : current))}
+                    >
+                      <div className="flex min-w-0 items-center gap-2">
+                        <span className="truncate">
+                          {getFieldLabel(allTables, relation.sourceTableId, relation.sourceFieldId)} {'->'}{' '}
+                          {getFieldLabel(allTables, relation.targetTableId, relation.targetFieldId)}
+                        </span>
+                        {hasRelationCatalog && !mapped ? (
+                          <span
+                            className="shrink-0 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700"
+                            title="Esta ligacao pode ser usada visualmente, mas ainda nao pode ser executada na previa real."
+                          >
+                            Nao homologada
+                          </span>
+                        ) : null}
+                      </div>
                       <button
                         type="button"
-                        className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+                        className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-rose-200 bg-white text-rose-500 transition hover:bg-rose-50 hover:text-rose-700"
                         onClick={() => onRemoveRelation(relation.id)}
                         aria-label="Remover ligacao"
                         title="Remover ligacao"
@@ -496,7 +653,8 @@ export function ReportCanvas({
                         <Trash2 size={12} />
                       </button>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ))}
@@ -504,13 +662,28 @@ export function ReportCanvas({
         )}
       </div>
 
+      {relationSuggestionsVisible.length > 0 ? (
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-700">
+            Sugestoes do catalogo ({relationSuggestionsVisible.length})
+          </p>
+          <div className="mt-2 space-y-1.5">
+            {relationSuggestionsVisible.map((relation) => (
+              <div key={relation.id} className="rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-700">
+                {relation.displayLabel}
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       <div
         ref={viewportRef}
         className="relative h-[720px] overflow-hidden rounded-xl border border-slate-200 bg-slate-100"
         onPointerDown={startCanvasPan}
       >
         <div
-          className="absolute left-0 top-0"
+          className="absolute left-0 top-0 z-[3]"
           style={{
             width: WORLD_WIDTH,
             height: WORLD_HEIGHT,
@@ -538,24 +711,38 @@ export function ReportCanvas({
           ))}
         </div>
 
-        <svg className="pointer-events-none absolute inset-0 h-full w-full">
-          {connectionLines.map((line) => (
-            <g key={line.id}>
-              <path d={line.path} stroke="#0f766e" strokeWidth={2} fill="none" />
-              <circle cx={line.source.x} cy={line.source.y} r={4} fill="#0f766e" />
-              <circle cx={line.target.x} cy={line.target.y} r={4} fill="#0f766e" />
-            </g>
-          ))}
+        <svg className="pointer-events-none absolute inset-0 z-[2] h-full w-full">
+          {showConnections
+            ? connectionLines.map((line) => (
+                <g key={line.id}>
+                  <path
+                    d={line.path}
+                    stroke={hoveredRelationId === line.id ? '#0369a1' : '#0f766e'}
+                    strokeWidth={hoveredRelationId === line.id ? 2.6 : 1.8}
+                    fill="none"
+                  />
+                  <circle cx={line.source.x} cy={line.source.y} r={4} fill="#0f766e" />
+                  <circle cx={line.target.x} cy={line.target.y} r={4} fill="#0f766e" />
+                </g>
+              ))
+            : null}
 
           {temporaryConnectionLine ? (
             <g>
-              <path d={temporaryConnectionLine.path} stroke="#0891b2" strokeWidth={2} strokeDasharray="5 4" fill="none" />
-              <circle cx={temporaryConnectionLine.source.x} cy={temporaryConnectionLine.source.y} r={4} fill="#0891b2" />
-              <circle cx={temporaryConnectionLine.target.x} cy={temporaryConnectionLine.target.y} r={4} fill="#0891b2" />
+              <path
+                d={temporaryConnectionLine.path}
+                stroke="#0891b2"
+                strokeWidth={2}
+                strokeDasharray="5 4"
+                fill="none"
+                pointerEvents="none"
+              />
+              <circle cx={temporaryConnectionLine.source.x} cy={temporaryConnectionLine.source.y} r={4} fill="#0891b2" pointerEvents="none" />
+              <circle cx={temporaryConnectionLine.target.x} cy={temporaryConnectionLine.target.y} r={4} fill="#0891b2" pointerEvents="none" />
             </g>
           ) : null}
         </svg>
       </div>
     </article>
   );
-}
+});

@@ -2176,13 +2176,6 @@ export function DashboardPage() {
         </article>
       </section>
 
-      <article className="ds-card">
-        <h2 className="text-lg font-semibold text-slate-900">Próximos passos</h2>
-        <p className="mt-2 text-sm text-slate-600">
-          Esta base já está pronta para evoluir com filtros avançados, relatórios detalhados e dashboards analíticos.
-        </p>
-      </article>
-
       {filiacaoSituacaoRegiaoEsferaModal ? (
         <div
           className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/45 p-4"
