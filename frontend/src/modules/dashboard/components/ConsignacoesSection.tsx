@@ -15,6 +15,7 @@ import {
   type ConsignacaoPorSituacaoItem,
   type ConsignacaoResumo
 } from '../services/dashboardConsignacoesService';
+import { MetricValueSkeleton, PanelSkeleton } from './DashboardSkeleton';
 
 const initialResumo: ConsignacaoResumo = {
   totalContribuido: 0,
@@ -99,7 +100,12 @@ export function ConsignacoesSection() {
     totalInconsistencias: 0,
     items: []
   });
-  const [loading, setLoading] = useState(true);
+  const [resumoLoading, setResumoLoading] = useState(true);
+  const [porRegiaoLoading, setPorRegiaoLoading] = useState(true);
+  const [porPeriodoLoading, setPorPeriodoLoading] = useState(true);
+  const [porSituacaoLoading, setPorSituacaoLoading] = useState(true);
+  const [porEntePublicoLoading, setPorEntePublicoLoading] = useState(true);
+  const [inconsistenciasLoading, setInconsistenciasLoading] = useState(true);
   const [error, setError] = useState('');
 
   const [regiaoExpandida, setRegiaoExpandida] = useState(false);
@@ -110,35 +116,64 @@ export function ConsignacoesSection() {
 
   useEffect(() => {
     async function load() {
-      setLoading(true);
-      setError('');
-      try {
-        const [resumoData, regiaoData, periodoData, situacaoData, enteData, inconsistenciasData] = await Promise.all([
-          getConsignacoesResumo(filters),
-          getConsignacoesPorRegiao(filters),
-          getConsignacoesPorPeriodo(filters),
-          getConsignacoesPorSituacao(filters),
-          getConsignacoesPorEntePublico(filters),
-          getConsignacoesInconsistencias(filters)
-        ]);
+      let hasError = false;
 
-        setResumo(resumoData);
-        setPorRegiao(regiaoData);
-        setPorPeriodo(periodoData);
-        setPorSituacao(situacaoData);
-        setPorEntePublico(enteData);
-        setInconsistencias(inconsistenciasData);
-      } catch (loadError) {
-        console.error(loadError);
+      setResumoLoading(true);
+      setPorRegiaoLoading(true);
+      setPorPeriodoLoading(true);
+      setPorSituacaoLoading(true);
+      setPorEntePublicoLoading(true);
+      setInconsistenciasLoading(true);
+      setError('');
+      const requests = [
+        getConsignacoesResumo(filters)
+          .then(setResumo)
+          .catch(() => {
+            hasError = true;
+            setResumo(initialResumo);
+          })
+          .finally(() => setResumoLoading(false)),
+        getConsignacoesPorRegiao(filters)
+          .then(setPorRegiao)
+          .catch(() => {
+            hasError = true;
+            setPorRegiao([]);
+          })
+          .finally(() => setPorRegiaoLoading(false)),
+        getConsignacoesPorPeriodo(filters)
+          .then(setPorPeriodo)
+          .catch(() => {
+            hasError = true;
+            setPorPeriodo([]);
+          })
+          .finally(() => setPorPeriodoLoading(false)),
+        getConsignacoesPorSituacao(filters)
+          .then(setPorSituacao)
+          .catch(() => {
+            hasError = true;
+            setPorSituacao([]);
+          })
+          .finally(() => setPorSituacaoLoading(false)),
+        getConsignacoesPorEntePublico(filters)
+          .then(setPorEntePublico)
+          .catch(() => {
+            hasError = true;
+            setPorEntePublico([]);
+          })
+          .finally(() => setPorEntePublicoLoading(false)),
+        getConsignacoesInconsistencias(filters)
+          .then(setInconsistencias)
+          .catch(() => {
+            hasError = true;
+            setInconsistencias({ totalInconsistencias: 0, items: [] });
+          })
+          .finally(() => setInconsistenciasLoading(false))
+      ];
+
+      await Promise.allSettled(requests);
+
+      if (hasError) {
         setError('Não foi possível carregar os indicadores de consignação.');
-        setResumo(initialResumo);
-        setPorRegiao([]);
-        setPorPeriodo([]);
-        setPorSituacao([]);
-        setPorEntePublico([]);
-        setInconsistencias({ totalInconsistencias: 0, items: [] });
-      } finally {
-        setLoading(false);
       }
     }
 
@@ -174,6 +209,13 @@ export function ConsignacoesSection() {
     [porEntePublico]
   );
 
+  const loading =
+    resumoLoading ||
+    porRegiaoLoading ||
+    porPeriodoLoading ||
+    porSituacaoLoading ||
+    porEntePublicoLoading ||
+    inconsistenciasLoading;
   const semDados = !loading && !error && resumo.quantidadeRegistros === 0;
 
   function applyFilters() {
@@ -319,7 +361,7 @@ export function ConsignacoesSection() {
         <article className="metric-card">
           <p className="text-sm text-slate-600">Total Contribuído</p>
           <p className="mt-2 text-3xl font-semibold text-sindata-900">
-            {loading ? '--' : formatCurrency(resumo.totalContribuido)}
+            {resumoLoading ? <MetricValueSkeleton /> : formatCurrency(resumo.totalContribuido)}
           </p>
         </article>
         <article className="metric-card">
@@ -327,7 +369,7 @@ export function ConsignacoesSection() {
             Total Contribuído ({resumo.periodo.anoReferencia ?? '---'})
           </p>
           <p className="mt-2 text-3xl font-semibold text-sindata-900">
-            {loading ? '--' : formatCurrency(resumo.totalAnoAtual)}
+            {resumoLoading ? <MetricValueSkeleton /> : formatCurrency(resumo.totalAnoAtual)}
           </p>
         </article>
         <article className="metric-card">
@@ -335,25 +377,25 @@ export function ConsignacoesSection() {
             Total Contribuído (Mês {resumo.periodo.mesReferencia ?? '---'})
           </p>
           <p className="mt-2 text-3xl font-semibold text-sindata-900">
-            {loading ? '--' : formatCurrency(resumo.totalMesAtual)}
+            {resumoLoading ? <MetricValueSkeleton /> : formatCurrency(resumo.totalMesAtual)}
           </p>
         </article>
         <article className="metric-card">
           <p className="text-sm text-slate-600">Média Mensal de Contribuição</p>
           <p className="mt-2 text-3xl font-semibold text-sindata-900">
-            {loading ? '--' : formatCurrency(resumo.mediaMensal)}
+            {resumoLoading ? <MetricValueSkeleton /> : formatCurrency(resumo.mediaMensal)}
           </p>
         </article>
         <article className="metric-card">
           <p className="text-sm text-slate-600">Quantidade de Registros</p>
           <p className="mt-2 text-3xl font-semibold text-sindata-900">
-            {loading ? '--' : formatInt(resumo.quantidadeRegistros)}
+            {resumoLoading ? <MetricValueSkeleton /> : formatInt(resumo.quantidadeRegistros)}
           </p>
         </article>
         <article className="metric-card">
           <p className="text-sm text-slate-600">Quantidade de Contribuintes</p>
           <p className="mt-2 text-3xl font-semibold text-sindata-900">
-            {loading ? '--' : formatInt(resumo.quantidadeContribuintes)}
+            {resumoLoading ? <MetricValueSkeleton /> : formatInt(resumo.quantidadeContribuintes)}
           </p>
         </article>
       </div>
@@ -370,8 +412,8 @@ export function ConsignacoesSection() {
           </button>
           {regiaoExpandida ? (
             <div className="border-t border-slate-100 p-3">
-              {loading ? (
-                <p className="text-sm text-slate-500">Carregando distribuição por região...</p>
+              {porRegiaoLoading ? (
+                <PanelSkeleton rows={3} />
               ) : porRegiao.length === 0 ? (
                 <p className="text-sm text-slate-500">Nenhum dado disponível.</p>
               ) : (
@@ -425,8 +467,8 @@ export function ConsignacoesSection() {
           </button>
           {periodoExpandido ? (
             <div className="border-t border-slate-100 p-3">
-              {loading ? (
-                <p className="text-sm text-slate-500">Carregando distribuição por período...</p>
+              {porPeriodoLoading ? (
+                <PanelSkeleton rows={3} />
               ) : porPeriodo.length === 0 ? (
                 <p className="text-sm text-slate-500">Nenhum dado disponível.</p>
               ) : (
@@ -478,8 +520,8 @@ export function ConsignacoesSection() {
           </button>
           {situacaoExpandida ? (
             <div className="border-t border-slate-100 p-3">
-              {loading ? (
-                <p className="text-sm text-slate-500">Carregando distribuição por situação...</p>
+              {porSituacaoLoading ? (
+                <PanelSkeleton rows={3} />
               ) : porSituacao.length === 0 ? (
                 <p className="text-sm text-slate-500">Nenhum dado disponível.</p>
               ) : (
@@ -529,8 +571,8 @@ export function ConsignacoesSection() {
           </button>
           {enteExpandido ? (
             <div className="border-t border-slate-100 p-3">
-              {loading ? (
-                <p className="text-sm text-slate-500">Carregando distribuição por ente público...</p>
+              {porEntePublicoLoading ? (
+                <PanelSkeleton rows={3} />
               ) : porEntePublico.length === 0 ? (
                 <p className="text-sm text-slate-500">Nenhum dado disponível.</p>
               ) : (
@@ -580,8 +622,8 @@ export function ConsignacoesSection() {
           </button>
           {inconsistenciasExpandida ? (
             <div className="border-t border-amber-200 p-3">
-              {loading ? (
-                <p className="text-sm text-slate-500">Carregando inconsistências...</p>
+              {inconsistenciasLoading ? (
+                <PanelSkeleton rows={3} />
               ) : inconsistencias.items.length === 0 ? (
                 <p className="text-sm text-slate-500">Nenhuma inconsistência encontrada.</p>
               ) : (

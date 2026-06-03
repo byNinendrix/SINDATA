@@ -1,18 +1,24 @@
 import { Eye, EyeOff, Lock, User } from 'lucide-react';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { isAxiosError } from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
+import type { AuthOutletContext } from '../../../components/layout/AuthLayout';
 import { saveAuth } from '../hooks/useAuth';
 import { authService } from '../services/authService';
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const { setOwlLogoState } = useOutletContext<AuthOutletContext>();
 
   const [login, setLogin] = useState('');
   const [senha, setSenha] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    return () => setOwlLogoState('trackingMouse');
+  }, [setOwlLogoState]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -67,7 +73,12 @@ export function LoginPage() {
               className="form-input pl-11"
               placeholder="Digite seu usuário"
               value={login}
-              onChange={(event) => setLogin(event.target.value)}
+              onFocus={() => setOwlLogoState('focusingUser')}
+              onBlur={() => setOwlLogoState('trackingMouse')}
+              onChange={(event) => {
+                setLogin(event.target.value);
+                setOwlLogoState('focusingUser');
+              }}
               autoComplete="username"
             />
           </div>
@@ -85,7 +96,12 @@ export function LoginPage() {
               className="form-input pl-11 pr-11"
               placeholder="Digite sua senha"
               value={senha}
-              onChange={(event) => setSenha(event.target.value)}
+              onFocus={() => setOwlLogoState('focusingPassword')}
+              onBlur={() => setOwlLogoState('trackingMouse')}
+              onChange={(event) => {
+                setSenha(event.target.value);
+                setOwlLogoState('focusingPassword');
+              }}
               autoComplete="current-password"
             />
             <button

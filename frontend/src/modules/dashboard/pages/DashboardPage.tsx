@@ -2,6 +2,7 @@
 import { ChevronDown, ChevronRight, ChevronUp, Search, X } from 'lucide-react';
 import api from '../../../services/api';
 import { ConsignacoesSection } from '../components/ConsignacoesSection';
+import { MetricDescriptionSkeleton, MetricValueSkeleton, PanelSkeleton, TableRowsSkeleton } from '../components/DashboardSkeleton';
 
 type DashboardCardKey =
   | 'totalPessoas'
@@ -288,7 +289,7 @@ function AnimatedMetricValue({ value, loading }: AnimatedMetricValueProps) {
   }, [loading, value]);
 
   if (loading) {
-    return <>--</>;
+    return <MetricValueSkeleton />;
   }
 
   return <>{animatedValue.toLocaleString('pt-BR')}</>;
@@ -329,7 +330,7 @@ function AnimatedInlineCount({ value, loading }: AnimatedInlineCountProps) {
   }, [loading, value]);
 
   if (loading) {
-    return <>--</>;
+    return <SkeletonInline />;
   }
 
   return <>{animatedValue.toLocaleString('pt-BR')}</>;
@@ -370,7 +371,7 @@ function AnimatedInlinePercent({ value, loading }: AnimatedInlinePercentProps) {
   }, [loading, value]);
 
   if (loading) {
-    return <>--</>;
+    return <SkeletonInline />;
   }
 
   return <>{`${animatedValue.toFixed(2).replace('.', ',')}%`}</>;
@@ -380,6 +381,10 @@ interface PieSlice {
   label: string;
   value: number;
   color: string;
+}
+
+function SkeletonInline() {
+  return <span className="inline-block h-4 w-12 animate-pulse rounded bg-slate-200/80 align-middle" />;
 }
 
 interface AnimatedPieChartProps {
@@ -1322,8 +1327,12 @@ export function DashboardPage() {
               <p className="mt-2 text-3xl font-semibold text-sindata-900">
                 <AnimatedMetricValue value={card.value} loading={loading} />
               </p>
-              {card.description && !loading ? (
-                <p className="mt-1 text-xs text-slate-500">{card.description}</p>
+              {card.description ? (
+                loading ? (
+                  <MetricDescriptionSkeleton />
+                ) : (
+                  <p className="mt-1 text-xs text-slate-500">{card.description}</p>
+                )
               ) : null}
             </button>
           ))}
@@ -1375,11 +1384,7 @@ export function DashboardPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-100 bg-white">
                     {sexoDistribuicaoLoading ? (
-                      <tr>
-                        <td colSpan={5} className="px-4 py-8 text-center text-sm text-slate-500">
-                          Carregando distribuição por sexo...
-                        </td>
-                      </tr>
+                      <TableRowsSkeleton columns={5} rows={4} />
                     ) : sexoDistribuicao.length === 0 ? (
                       <tr>
                         <td colSpan={5} className="px-4 py-8 text-center text-sm text-slate-500">
@@ -1462,8 +1467,12 @@ export function DashboardPage() {
               <p className="mt-2 text-3xl font-semibold text-sindata-900">
                 <AnimatedMetricValue value={card.value} loading={loading} />
               </p>
-              {card.description && !loading ? (
-                <p className="mt-1 text-xs text-slate-500">{card.description}</p>
+              {card.description ? (
+                loading ? (
+                  <MetricDescriptionSkeleton />
+                ) : (
+                  <p className="mt-1 text-xs text-slate-500">{card.description}</p>
+                )
               ) : null}
             </button>
           ))}
@@ -1512,11 +1521,7 @@ export function DashboardPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-100 bg-white">
                     {filiacaoSituacaoDistribuicaoLoading ? (
-                      <tr>
-                        <td colSpan={3} className="px-4 py-8 text-center text-sm text-slate-500">
-                          Carregando distribuição por situação funcional...
-                        </td>
-                      </tr>
+                      <TableRowsSkeleton columns={3} rows={4} />
                     ) : filiacaoSituacaoDistribuicao.length === 0 ? (
                       <tr>
                         <td colSpan={3} className="px-4 py-8 text-center text-sm text-slate-500">
@@ -1613,7 +1618,7 @@ export function DashboardPage() {
                                         {filiacaoSituacaoRegiaoDistribuicaoError ? (
                                           <div className="alert-error">{filiacaoSituacaoRegiaoDistribuicaoError}</div>
                                         ) : filiacaoSituacaoRegiaoDistribuicaoLoading ? (
-                                          <p className="text-sm text-slate-500">Carregando distribuição por região...</p>
+                                          <PanelSkeleton rows={3} />
                                         ) : regiaoDaSituacao.length === 0 ? (
                                           <p className="text-sm text-slate-500">
                                             Nenhum dado de distribuição por região encontrado para esta situação.
@@ -1664,7 +1669,7 @@ export function DashboardPage() {
                                             {filiacaoSituacaoRegiaoInconsistenciasError ? (
                                               <div className="alert-error">{filiacaoSituacaoRegiaoInconsistenciasError}</div>
                                             ) : filiacaoSituacaoRegiaoInconsistenciasLoading ? (
-                                              <p className="text-sm text-slate-600">Carregando inconsistências...</p>
+                                              <PanelSkeleton rows={3} />
                                             ) : (
                                               <div className="max-h-64 overflow-auto rounded-lg border border-amber-200 bg-white">
                                                 <table className="min-w-full divide-y divide-amber-100">
@@ -1721,7 +1726,7 @@ export function DashboardPage() {
                                         {filiacaoSituacaoSexoDistribuicaoError ? (
                                           <div className="alert-error">{filiacaoSituacaoSexoDistribuicaoError}</div>
                                         ) : filiacaoSituacaoSexoDistribuicaoLoading ? (
-                                          <p className="text-sm text-slate-500">Carregando distribuição por sexo...</p>
+                                          <PanelSkeleton rows={3} />
                                         ) : sexoDaSituacao.length === 0 ? (
                                           <p className="text-sm text-slate-500">
                                             Nenhum dado de distribuição por sexo encontrado para esta situação.
@@ -1768,7 +1773,7 @@ export function DashboardPage() {
                                             {filiacaoSituacaoSexoInconsistenciasError ? (
                                               <div className="alert-error">{filiacaoSituacaoSexoInconsistenciasError}</div>
                                             ) : filiacaoSituacaoSexoInconsistenciasLoading ? (
-                                              <p className="text-sm text-slate-600">Carregando inconsistências...</p>
+                                              <PanelSkeleton rows={3} />
                                             ) : (
                                               <div className="max-h-64 overflow-auto rounded-lg border border-amber-200 bg-white">
                                                 <table className="min-w-full divide-y divide-amber-100">
@@ -1862,11 +1867,7 @@ export function DashboardPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-100 bg-white">
                     {filiacaoSituacaoDesfiliadosLoading ? (
-                      <tr>
-                        <td colSpan={3} className="px-4 py-8 text-center text-sm text-slate-500">
-                          Carregando distribuição de desfiliados...
-                        </td>
-                      </tr>
+                      <TableRowsSkeleton columns={3} rows={4} />
                     ) : filiacaoSituacaoDesfiliados.length === 0 ? (
                       <tr>
                         <td colSpan={3} className="px-4 py-8 text-center text-sm text-slate-500">
@@ -1969,7 +1970,7 @@ export function DashboardPage() {
                                         {filiacaoSituacaoDesfiliadosRegiaoError ? (
                                           <div className="alert-error">{filiacaoSituacaoDesfiliadosRegiaoError}</div>
                                         ) : filiacaoSituacaoDesfiliadosRegiaoLoading ? (
-                                          <p className="text-sm text-slate-500">Carregando distribuição por região...</p>
+                                          <PanelSkeleton rows={3} />
                                         ) : regiaoDaSituacao.length === 0 ? (
                                           <p className="text-sm text-slate-500">
                                             Nenhum dado de distribuição por região encontrado para esta situação.
@@ -2021,7 +2022,7 @@ export function DashboardPage() {
                                             {filiacaoSituacaoDesfiliadosRegiaoInconsistenciasError ? (
                                               <div className="alert-error">{filiacaoSituacaoDesfiliadosRegiaoInconsistenciasError}</div>
                                             ) : filiacaoSituacaoDesfiliadosRegiaoInconsistenciasLoading ? (
-                                              <p className="text-sm text-slate-600">Carregando inconsistências...</p>
+                                              <PanelSkeleton rows={3} />
                                             ) : (
                                               <div className="max-h-64 overflow-auto rounded-lg border border-amber-200 bg-white">
                                                 <table className="min-w-full divide-y divide-amber-100">
@@ -2078,7 +2079,7 @@ export function DashboardPage() {
                                         {filiacaoSituacaoDesfiliadosSexoError ? (
                                           <div className="alert-error">{filiacaoSituacaoDesfiliadosSexoError}</div>
                                         ) : filiacaoSituacaoDesfiliadosSexoLoading ? (
-                                          <p className="text-sm text-slate-500">Carregando distribuição por sexo...</p>
+                                          <PanelSkeleton rows={3} />
                                         ) : sexoDaSituacao.length === 0 ? (
                                           <p className="text-sm text-slate-500">
                                             Nenhum dado de distribuição por sexo encontrado para esta situação.
@@ -2125,7 +2126,7 @@ export function DashboardPage() {
                                             {filiacaoSituacaoDesfiliadosSexoInconsistenciasError ? (
                                               <div className="alert-error">{filiacaoSituacaoDesfiliadosSexoInconsistenciasError}</div>
                                             ) : filiacaoSituacaoDesfiliadosSexoInconsistenciasLoading ? (
-                                              <p className="text-sm text-slate-600">Carregando inconsistências...</p>
+                                              <PanelSkeleton rows={3} />
                                             ) : (
                                               <div className="max-h-64 overflow-auto rounded-lg border border-amber-200 bg-white">
                                                 <table className="min-w-full divide-y divide-amber-100">
@@ -2234,7 +2235,7 @@ export function DashboardPage() {
 
               <div className="space-y-3">
                 {filiacaoSituacaoRegiaoEsferaLoading ? (
-                  <p className="text-sm text-slate-500">Carregando distribuicao...</p>
+                  <PanelSkeleton rows={4} />
                 ) : (
                   <>
                     {filiacaoSituacaoRegiaoEsferaDistribuicao.map((item) => {
@@ -2273,7 +2274,7 @@ export function DashboardPage() {
                               {filiacaoSituacaoRegiaoEsferaSexoError ? (
                                 <p className="text-xs text-rose-700">{filiacaoSituacaoRegiaoEsferaSexoError}</p>
                               ) : filiacaoSituacaoRegiaoEsferaSexoLoading ? (
-                                <p className="text-xs text-slate-500">Carregando distribuicao por sexo...</p>
+                                <PanelSkeleton rows={2} />
                               ) : filiacaoSituacaoRegiaoEsferaSexoDistribuicao.length === 0 ? (
                                 <p className="text-xs text-slate-500">Nenhum dado de sexo encontrado para esta esfera.</p>
                               ) : (
